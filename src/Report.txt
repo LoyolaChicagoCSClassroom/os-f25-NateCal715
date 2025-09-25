@@ -1,0 +1,24 @@
+In file included from /usr/include/stdio.h:34,
+                 from kernel_main.c:3:
+/usr/lib/gcc/x86_64-pc-linux-gnu/14/include/stddef.h:229:23: error: conflicting types for ‘size_t’; have ‘long unsigned int’
+  229 | typedef __SIZE_TYPE__ size_t;
+      |                       ^~~~~~
+In file included from kernel_main.c:1:
+rprintf.h:9:23: note: previous declaration of ‘size_t’ with type ‘size_t’ {aka ‘unsigned int’}
+    9 | typedef unsigned int  size_t;
+      |                       ^~~~~~
+kernel_main.c:61:6: error: conflicting types for ‘putc’; have ‘void(char)’
+   61 | void putc(char c) {
+      |      ^~~~
+/usr/include/stdio.h:612:12: note: previous declaration of ‘putc’ with type ‘int(int,  FILE *)’
+  612 | extern int putc (int __c, FILE *__stream) __nonnull ((2));
+      |            ^~~~
+kernel_main.c: In function ‘main’:
+kernel_main.c:100:24: error: passing argument 1 of ‘esp_printf’ from incompatible pointer type [-Wincompatible-pointer-types]
+  100 |             esp_printf(print_char, "0x%02x\n    %c\n", scancode);
+      |                        ^~~~~~~~~~
+      |                        |
+      |                        void (*)(char)
+rprintf.h:23:33: note: expected ‘func_ptr’ {aka ‘int (* const)(int)’} but argument is of type ‘void (*)(char)’
+   23 | void esp_printf( const func_ptr f_ptr, charptr ctrl, ...);
+      |                  ~~~~~~~~~~~~~~~^~~~~
