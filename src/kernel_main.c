@@ -41,8 +41,8 @@ void scroll() {
 }
 
 
-void putc(int data) {
-    char c = (char)(data & 0xFF);
+void putc() {
+    char c = 'A'; // Example character to print
 
     if (c == '\n') {
         // Handle newline
@@ -67,7 +67,7 @@ void putc(int data) {
 }
 
 void main() {
-    
+
     esp_printf("Hello, kernel World!\n");
 
     unsigned short *vram = (unsigned short*)0xb8000; // Base address of video mem
