@@ -25,6 +25,21 @@ static int term_row = 0;
 static int term_col = 0;
 
 
+void scroll() {
+    // Scroll the screen up by one row
+    for (int y = 1; y < VGA_HEIGHT; y++) {
+        for (int x = 0; x < VGA_WIDTH; x++) {
+            VIDEO_MEM[(y - 1) * VGA_WIDTH + x] = VIDEO_MEM[y * VGA_WIDTH + x];
+        }
+    }
+    // Clear the last row
+    for (int x = 0; x < VGA_WIDTH; x++) {
+        VIDEO_MEM[(VGA_HEIGHT - 1) * VGA_WIDTH + x].ASCII = ' ';
+        VIDEO_MEM[(VGA_HEIGHT - 1) * VGA_WIDTH + x].COLOR = DEFAULT_COLOR;
+    }
+    if (term_row > 0) term_row--;
+}
+
 
 void putc(int data) {
     char c = (char)(data & 0xFF);
@@ -51,20 +66,7 @@ void putc(int data) {
     }
 }
 
-void scroll() {
-    // Scroll the screen up by one row
-    for (int y = 1; y < VGA_HEIGHT; y++) {
-        for (int x = 0; x < VGA_WIDTH; x++) {
-            VIDEO_MEM[(y - 1) * VGA_WIDTH + x] = VIDEO_MEM[y * VGA_WIDTH + x];
-        }
-    }
-    // Clear the last row
-    for (int x = 0; x < VGA_WIDTH; x++) {
-        VIDEO_MEM[(VGA_HEIGHT - 1) * VGA_WIDTH + x].ASCII = ' ';
-        VIDEO_MEM[(VGA_HEIGHT - 1) * VGA_WIDTH + x].COLOR = DEFAULT_COLOR;
-    }
-    if (term_row > 0) term_row--;
-}
+
 
 void main() {
     
