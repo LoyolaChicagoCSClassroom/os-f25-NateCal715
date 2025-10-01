@@ -58,28 +58,22 @@ void scroll() {
 }
 
 
-void putc() {
-    char c = 'A'; // Example character to print
+void putc(char c) {
+    struct termbuf *vram = (struct termbuf *)0xB8000;
 
     if (c == '\n') {
-        // Handle newline
-        term_col = 0;
-        term_row++;
-        if (term_row >= VGA_HEIGHT) {
-            scroll();
-        }
-        return;
+        x = (x / VGA_WIDTH + 1) * VGA_WIDTH; // Move to the start of the next line
+    } else if (c == '\r') {
+        x = (x / VGA_WIDTH) * VGA_WIDTH; // Move to the start of the current line
+    } else {
+        vram[x].ASCII = c;
+        vram[x].COLOR = DEFAULT_COLOR;
+        x++;
     }
 
-    VIDEO_MEM[term_row * VGA_WIDTH + term_col].ASCII = c;
-    VIDEO_MEM[term_row * VGA_WIDTH + term_col].COLOR = DEFAULT_COLOR;
-    term_col++;
-    if (term_col >= VGA_WIDTH) {
-        term_col = 0;
-        term_row++;
-        if (term_row >= VGA_HEIGHT) {
-            scroll();
-        }
+    if (x >= VGA_WIDTH * VGA_HEIGHT) {
+        scroll();
+        x = (VGA_HEIGHT - 1) * VGA_WIDTH; // Move to the start of the last line
     }
 }
 
@@ -87,7 +81,8 @@ void putc() {
 
 void main() {
 
-    esp_printf("Hello, kernel World!\n");
+    print_string(putc, "Hello, kernel World!\n");
+
 
     unsigned short *vram = (unsigned short*)0xb8000; // Base address of video mem
     const unsigned char color = 7; // gray text on black background
