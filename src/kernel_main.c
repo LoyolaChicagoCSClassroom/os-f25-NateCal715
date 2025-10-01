@@ -21,9 +21,22 @@ struct termbuf {
 #define DEFAULT_COLOR 7 // grey on black 
 #define VIDEO_MEM ((struct termbuf*)0xb8000)
 
-static int term_row = 0;
-static int term_col = 0;
+int x = 0;
+int y = 0;
 
+void print_string(void (*pc)(char), char *s) {
+    while (*s != 0) {
+        pc(*s);
+        s++;
+    }
+}
+
+void print_char(char c) {
+    struct termbuf *vram = (struct termbuf *)0xB8000;
+    vram[x].ASCII = c;
+    vram[x].COLOR = 7;
+    x++;
+}
 
 void scroll() {
     // Scroll the screen up by one row
@@ -33,11 +46,13 @@ void scroll() {
         }
     }
     // Clear the last row
-    for (int x = 0; x < VGA_WIDTH; x++) {
+    for ( int x = 0; x < VGA_WIDTH; x++) {
         VIDEO_MEM[(VGA_HEIGHT - 1) * VGA_WIDTH + x].ASCII = ' ';
         VIDEO_MEM[(VGA_HEIGHT - 1) * VGA_WIDTH + x].COLOR = DEFAULT_COLOR;
     }
-    if (term_row > 0) term_row--;
+    if (x >= VGA_HEIGHT) {
+        x = VGA_HEIGHT - 1;
+    }
 }
 
 
@@ -66,6 +81,8 @@ void putc() {
     }
 }
 
+
+
 void main() {
 
     esp_printf("Hello, kernel World!\n");
@@ -78,6 +95,13 @@ void main() {
 
         if(status & 1) {
             uint8_t scancode = inb(0x60);
+            
+            if (scancode > 128) {
+                continue; // Ignore key releases
+            }
+            
+            esp_printf(print_char, "0x%02x\n    %c\n", scancode);
+            // keyboard_map[scancode]
         }
     }
 }
