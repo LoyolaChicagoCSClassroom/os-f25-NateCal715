@@ -1,6 +1,7 @@
-#include "rprintf.h"
-#include <stdio.h>
 #include <stdint.h>
+#include "rprintf.h"
+
+
 
 #define MULTIBOOT2_HEADER_MAGIC 0xe85250d6
 
@@ -55,7 +56,7 @@ void scroll() {
 }
 
 
-int putc(int ch) {
+void putc(char ch) {   
     // Handle newline character
     if (ch == '\n') {
         row_x++;
