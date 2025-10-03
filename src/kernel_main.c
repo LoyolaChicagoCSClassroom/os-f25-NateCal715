@@ -61,7 +61,7 @@ int putc(int ch) {
         row_x++;
         col_y = 0;
     } else {
-        vram[row_x * VGA_WIDTH + col_y].ASCII = ch;
+        vram[row_x * VGA_WIDTH + col_y].ASCII = (char)ch;
         vram[row_x * VGA_WIDTH + col_y].COLOR = 7; 
         row_x++;
     }
