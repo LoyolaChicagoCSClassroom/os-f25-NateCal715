@@ -26,8 +26,8 @@ struct termbuf {
     char COLOR;
 };
 
-int row_x = 0;
-int col_y = 0;
+static int row_x = 0;
+static int col_y = 0;
 
 
 // void print_char(char c) {
@@ -38,7 +38,7 @@ int col_y = 0;
 // }
 
 // Pointer to the start of video memory
-struct termbuf* const vram = (struct termbuf*)VGA_ADDRESS;
+static struct termbuf* const vram = (struct termbuf*)VGA_ADDRESS;
 
 void scroll() {
     // Scroll the screen up by one row
@@ -50,7 +50,7 @@ void scroll() {
     // Clear the last row
     for (int y = 0; y < VGA_WIDTH; y++) {
         vram[(VGA_HEIGHT - 1) * VGA_WIDTH + y].ASCII = ' ';
-        vram[(VGA_HEIGHT - 1) * VGA_WIDTH + x].COLOR = 7;
+        vram[(VGA_HEIGHT - 1) * VGA_WIDTH + y].COLOR = 7;
     }
 }
 
