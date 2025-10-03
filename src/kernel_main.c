@@ -30,14 +30,6 @@ int x = 0;
 int y = 0;
 
 
-
-void print_string(void (*pc)(char), char *s) {
-    while (*s != 0) {
-        pc(*s);
-        s++;
-    }
-}
-
 // void print_char(char c) {
 //     struct termbuf *vram = (struct termbuf *)0xB8000;
 //     vram[x].ASCII = c;
@@ -82,6 +74,12 @@ int putc(int ch) {
     return ch;
 }
 
+void print_string(void (*pc)(char), char *s) {
+    while (*s != 0) {
+        pc(*s);
+        s++;
+    }
+}
 
 
 void main() {
