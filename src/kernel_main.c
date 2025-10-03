@@ -4,11 +4,14 @@
 
 #define MULTIBOOT2_HEADER_MAGIC 0xe85250d6
 
-const unsigned int multiboot_header[]  __attribute__((section(".multiboot"))) = {MULTIBOOT2_HEADER_MAGIC, 0, 16, -(16+MULTIBOOT2_HEADER_MAGIC), 0, 12};
+// Multiboot2 header for GRUB
+const unsigned int multiboot_header[] __attribute__((section(".multiboot"))) = {
+    MULTIBOOT2_HEADER_MAGIC, 0, 16, -(16 + MULTIBOOT2_HEADER_MAGIC), 0, 12
+};
 
-uint8_t inb (uint16_t _port) {
+uint8_t inb(uint16_t _port) {
     uint8_t rv;
-    __asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
+    __asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN"(_port));
     return rv;
 }
 
@@ -83,7 +86,7 @@ int putc(int ch) {
 
 void main() {
 
-    esp_printf(putc, "Hello, kernel World!\n");
+    esp_printf(putc, "Hello, World!\n");
 
 
     while(1) {
