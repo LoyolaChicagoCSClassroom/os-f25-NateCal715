@@ -74,8 +74,9 @@ int putc(int ch) {
     return ch;
 }
 
-void print_string(void (*pc)(char), char *s) {
+int print_string(void (*pc)(char), char *s) {
     while (*s != 0) {
+        uint8_t status = inb(0x64);
         pc(*s);
         s++;
     }
