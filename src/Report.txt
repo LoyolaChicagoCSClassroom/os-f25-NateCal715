@@ -13,4 +13,5 @@ collect2: error: ld returned 1 exit status
 
 gcc -m32 -ffreestanding -c kernel_main.c -o kernel_main.o
 gcc -m32 -ffreestanding -c rprintf.c -o rprintf.o
-ld -m elf_i386 -T linker.ld -o kernel.elf kernel_main.o rprintf.o
+ld -m elf_i386 -T kernel.ld -o kernel.elf kernel_main.o rprintf.o
+
