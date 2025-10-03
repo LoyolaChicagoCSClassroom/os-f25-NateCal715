@@ -26,8 +26,8 @@ struct termbuf {
     char COLOR;
 };
 
-int x = 0;
-int y = 0;
+int row_x = 0;
+int col_y = 0;
 
 
 // void print_char(char c) {
@@ -57,18 +57,23 @@ void scroll() {
 
 int putc(int ch) {
     if (ch == '\n') {
-        x++;
-        y = 0;
+        row_x++;
+        col_y = 0;
     } else {
-        vram[x * VGA_WIDTH + y].ASCII = ch;
-        vram[x * VGA_WIDTH + y].COLOR = 7; 
-        x++;
+        vram[row_x * VGA_WIDTH + col_y].ASCII = ch;
+        vram[row_x * VGA_WIDTH + col_y].COLOR = 7; 
+        row_x++;
     }
 
 
-    if (y >= VGA_WIDTH) {
+    if (col_y >= VGA_WIDTH) {
+        col_y = 0;
+        row_x++;
+    }
+
+    if (row_x >= VGA_HEIGHT) {
         scroll();
-        x = VGA_HEIGHT - 1;
+        row_x = VGA_HEIGHT - 1;
     }
 
     return ch;
