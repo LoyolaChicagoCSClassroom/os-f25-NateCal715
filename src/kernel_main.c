@@ -93,7 +93,7 @@ int MyPutC(int ch) {
 
 void main() {
 
-    esp_printf(putc, "Hello, World!\n");
+    esp_printf(MyPutC, "Hello, World!\n");
 
 
     while(1) {
@@ -106,7 +106,7 @@ void main() {
                 continue; // Ignore key releases
             }
             
-            esp_printf(putc, "0x%02x\n    %c\n", scancode);
+            esp_printf(MyPutC, "0x%02x\n    %c\n", scancode);
             // keyboard_map[scancode]
         }
     }
