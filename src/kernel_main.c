@@ -56,6 +56,7 @@ void scroll() {
 
 
 int putc(int ch) {
+    // Handle newline character
     if (ch == '\n') {
         row_x++;
         col_y = 0;
@@ -65,12 +66,12 @@ int putc(int ch) {
         row_x++;
     }
 
-
+    // Move to the next column
     if (col_y >= VGA_WIDTH) {
         col_y = 0;
         row_x++;
     }
-
+    // Scroll if we reach the bottom of the screen
     if (row_x >= VGA_HEIGHT) {
         scroll();
         row_x = VGA_HEIGHT - 1;
@@ -80,6 +81,7 @@ int putc(int ch) {
 }
 
 int print_string(void (*pc)(char), char *s) {
+    // Print each character until null terminator
     while (*s != 0) {
         uint8_t status = inb(0x64);
         pc(*s);
