@@ -1,5 +1,5 @@
 #include "rprintf.h"
-// #include "esp_printf.h"
+#include <stdio.h>
 #include <stdint.h>
 
 #define MULTIBOOT2_HEADER_MAGIC 0xe85250d6
