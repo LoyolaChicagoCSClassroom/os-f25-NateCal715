@@ -56,7 +56,7 @@ void scroll() {
 }
 
 
-int putc(int ch) {   
+int MyPutC(int ch) {   
     // Handle newline character
     if (ch == '\n') {
         row_x++;
