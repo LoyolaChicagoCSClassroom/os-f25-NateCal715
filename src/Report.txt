@@ -9,3 +9,8 @@ kernel_main.c:3:1: note: ‘putc’ is declared in header ‘<stdio.h>’
 kernel_main.c:(.text+0x22c): undefined reference to `esp_printf'
 /usr/lib/gcc/x86_64-pc-linux-gnu/14/../../../../x86_64-pc-linux-gnu/bin/ld: kernel_main.c:(.text+0x27b): undefined reference to `esp_printf'
 collect2: error: ld returned 1 exit status
+
+
+gcc -m32 -ffreestanding -c kernel_main.c -o kernel_main.o
+gcc -m32 -ffreestanding -c rprintf.c -o rprintf.o
+ld -m elf_i386 -T linker.ld -o kernel.elf kernel_main.o rprintf.o
