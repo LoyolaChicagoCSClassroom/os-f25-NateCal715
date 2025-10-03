@@ -81,14 +81,14 @@ int putc(int ch) {
     return ch;
 }
 
-int print_string(void (*pc)(char), char *s) {
-    // Print each character until null terminator
-    while (*s != 0) {
-        uint8_t status = inb(0x64);
-        pc(*s);
-        s++;
+    int print_string(void (*pc)(char), char *s) {
+        // Print each character until null terminator
+        while (*s != 0) {
+            uint8_t status = inb(0x64);
+            pc(*s);
+            s++;
+        }
     }
-}
 
 
 void main() {
