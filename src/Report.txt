@@ -1,35 +1,15 @@
-kernel_main.c:59:5: warning: conflicting types for built-in function ‘putc’; expected ‘int(int,  void *)’ [-Wbuiltin-declaration-mismatch]
-   59 | int putc(int ch) {
-      |     ^~~~
-kernel_main.c:3:1: note: ‘putc’ is declared in header ‘<stdio.h>’
-    2 | #include "rprintf.h"
-  +++ |+#include <stdio.h>
-    3 | 
-/usr/lib/gcc/x86_64-pc-linux-gnu/14/../../../../x86_64-pc-linux-gnu/bin/ld: /tmp/ccur4i98.o: in function `main':
-kernel_main.c:(.text+0x22c): undefined reference to `esp_printf'
-/usr/lib/gcc/x86_64-pc-linux-gnu/14/../../../../x86_64-pc-linux-gnu/bin/ld: kernel_main.c:(.text+0x27b): undefined reference to `esp_printf'
-collect2: error: ld returned 1 exit status
-
-
-gcc -m32 -ffreestanding -c kernel_main.c -o kernel_main.o
-gcc -m32 -ffreestanding -c rprintf.c -o rprintf.o
-ld -m elf_i386 -T kernel.ld -o kernel.elf kernel_main.o rprintf.o
-
-
-In file included from src/page.c:9:
-src/page.h:9:1: error: return type defaults to ‘int’ [-Wimplicit-int]
-    9 | list_add(struct ppage *new_page, struct ppage **head) {
-      | ^~~~~~~~
-src/page.h:19:1: error: return type defaults to ‘int’ [-Wimplicit-int]
-   19 | list_remove(struct ppage *page, struct ppage **head) {
-      | ^~~~~~~~~~~
-src/page.h: In function ‘list_add’:
-src/page.h:17:1: warning: control reaches end of non-void function [-Wreturn-type]
-   17 | }
-      | ^
-src/page.h: In function ‘list_remove’:
-src/page.h:30:1: warning: control reaches end of non-void function [-Wreturn-type]
-   30 | }
-      | ^
+src/page.c: In function ‘allocate_physical_pages’:
+src/page.c:66:17: error: implicit declaration of function ‘free_physical_pages’; did you mean ‘allocate_physical_pages’? [-Wimplicit-function-declaration]
+   66 |                 free_physical_pages(allocd_list);
+      |                 ^~~~~~~~~~~~~~~~~~~
+      |                 allocate_physical_pages
+src/page.c: At top level:
+src/page.c:81:6: warning: conflicting types for ‘free_physical_pages’; have ‘void(struct ppage *)’
+   81 | void free_physical_pages(struct ppage *ppage_list) {
+      |      ^~~~~~~~~~~~~~~~~~~
+src/page.c:66:17: note: previous implicit declaration of ‘free_physical_pages’ with type ‘void(struct ppage *)’
+   66 |                 free_physical_pages(allocd_list);
+      |                 ^~~~~~~~~~~~~~~~~~~
 make: *** [Makefile:34: obj/page.o] Error 1
+
 
