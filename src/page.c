@@ -1,3 +1,6 @@
+#include "page.h"
+#include <stdio.h>
+
 struct ppage physical_page_array[128]; // 128 pages, each 2mb in length covers 256 megs of memory
 
 void init_pfa_list(void) {
@@ -5,6 +8,7 @@ void init_pfa_list(void) {
     // It will loop through every element of your 
     // statically allocated physical_page_array and
     // link it into the list
+    
 }
 
 struct ppage *allocate_physical_pages(unsigned int npages) {
