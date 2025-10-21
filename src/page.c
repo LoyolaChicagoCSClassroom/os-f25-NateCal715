@@ -1,5 +1,11 @@
 // PAGE FRAME ALLOCATOR
 
+// In our operating system, we are going to divide physical memory up into 2 mbyte blocks,
+// each of which can be assigned to a particular process. We will track each physical page in 
+// memory using a data structure that points to its physical addresss. Those data structures
+// will initially be linked together in a linked list called free_physical_pages which will track
+// the physical pages that are not allocated to any process.
+
 #include "page.h"
 #include <stdio.h>
 
@@ -28,6 +34,7 @@ struct ppage *allocate_physical_pages(unsigned int npages) {
     // from the free list and create a new separate
     // list. It will return a pointer to the new list
     // (called allocd_list)
+    
     if (npages == 0) {
         return NULL; // No pages requested
     }
