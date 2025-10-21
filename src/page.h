@@ -6,7 +6,7 @@ struct ppage {
     void *physical_addr;
 };
 
-list_add(struct ppage *new_page, struct ppage **head) {
+void list_add(struct ppage *new_page, struct ppage **head) {
     if (*head == NULL) {
         *head = new_page;
     } else {
@@ -16,7 +16,7 @@ list_add(struct ppage *new_page, struct ppage **head) {
     }
 }
 
-list_remove(struct ppage *page, struct ppage **head) {
+void list_remove(struct ppage *page, struct ppage **head) {
     if (page->prev) {
         page->prev->next = page->next;
     } else {
