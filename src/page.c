@@ -9,11 +9,16 @@
 #include "page.h"
 #include <stdio.h>
 
+#include <stddef.h>
+
 // All the functions that are written for the page allocator are going to call
 // the linked list functions to actually link and unlink elements from the list
 
 // Statically Allocate an array of struct ppages
 struct ppage physical_page_array[128]; // 128 pages, each 2mb in length covers 256 megs of memory
+
+// Head of the free list
+static struct ppage *free_list_head = NULL;
 
 // Initializes the list of free physical page structures
 void init_pfa_list(void) {
@@ -21,6 +26,18 @@ void init_pfa_list(void) {
     // It will loop through every element of your 
     // statically allocated physical_page_array and
     // link it into the list
+    
+    free_list_head = NULL;
+
+    for (int i = 0; i < 128; i++) {
+        physical_page_array[i].physical_addr = (void *)(i * 0x200000); // Each page is 2MB
+        physical_page_array[i].next = NULL;
+        physical_page_array[i].prev = NULL;
+    
+        // Add to free list
+        list_add(&physical_page_array[i], &free_list_head);
+    }
+
     
 }
 
