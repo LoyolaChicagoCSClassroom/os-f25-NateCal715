@@ -87,5 +87,19 @@ void free_physical_pages(struct ppage *ppage_list) {
         return; // Nothing to free
     }
 
+    // Iterate through the provided list and add each page back to the free list
+    struct ppage *current_page = ppage_list;
+
+    // Unlink each page from ppage_list and add to free_list_head
+    while (current_page != NULL) {
+        // Store next page before unlinking
+        struct ppage *next_page = current_page->next;
+        // Unlink from ppage_list
+        list_remove(current_page, &ppage_list);
+        // Add to free list
+        list_add(current_page, &free_list_head);
+        // Move to next page
+        current_page = next_page;
+    }
 
 }
