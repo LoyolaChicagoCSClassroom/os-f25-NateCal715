@@ -1,26 +1,7 @@
 gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/kernel_main.o src/kernel_main.c
-In file included from src/kernel_main.c:5:
-src/rprintf.h:11:9: warning: "NULL" redefined
-   11 | #define NULL (void*)0
-      |         ^~~~
-In file included from /usr/include/unistd.h:226,
-                 from src/kernel_main.c:4:
-/usr/lib/gcc/x86_64-pc-linux-gnu/14/include/stddef.h:419:9: note: this is the location of the previous definition
-  419 | #define NULL ((void *)0)
-      |         ^~~~
-src/kernel_main.c: In function ‘print_string’:
-src/kernel_main.c:88:21: warning: unused variable ‘status’ [-Wunused-variable]
-   88 |             uint8_t status = inb(0x64);
-      |                     ^~~~~~
 gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/rprintf.o src/rprintf.c
 gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/page.o src/page.c
 ld -melf_i386  obj/* -Tkernel.ld -o kernel
-ld: obj/kernel_main.o: in function `driver_init':
-/root/os-f25-NateCal715/src/kernel_main.c:96:(.text+0x1cc): undefined reference to `open'
 ld: obj/kernel_main.o: in function `sector_read':
-/root/os-f25-NateCal715/src/kernel_main.c:104:(.text+0x217): undefined reference to `lseek'
-ld: /root/os-f25-NateCal715/src/kernel_main.c:108:(.text+0x24e): undefined reference to `read'
-ld: obj/kernel_main.o: in function `main':
-/root/os-f25-NateCal715/src/kernel_main.c:265:(.text+0x8a2): undefined reference to `printf'
-ld: /root/os-f25-NateCal715/src/kernel_main.c:267:(.text+0x8b4): undefined reference to `printf'
+/root/os-f25-NateCal715/src/kernel_main.c:97:(.text+0x193): undefined reference to `ata_lba_read'
 make: *** [Makefile:43: bin] Error 1
