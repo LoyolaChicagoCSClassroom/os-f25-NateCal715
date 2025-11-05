@@ -1,3 +1,4 @@
+gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/kernel_main.o src/kernel_main.c
 In file included from src/kernel_main.c:5:
 src/rprintf.h:11:9: warning: "NULL" redefined
    11 | #define NULL (void*)0
@@ -11,24 +12,15 @@ src/kernel_main.c: In function ‘print_string’:
 src/kernel_main.c:88:21: warning: unused variable ‘status’ [-Wunused-variable]
    88 |             uint8_t status = inb(0x64);
       |                     ^~~~~~
-src/kernel_main.c: In function ‘fatInit’:
-src/kernel_main.c:97:5: error: implicit declaration of function ‘sector_read’ [-Wimplicit-function-declaration]
-   97 |     sector_read(2048, boot_sector);
-      |     ^~~~~~~~~~~
-src/kernel_main.c: In function ‘main’:
-src/kernel_main.c:242:5: error: implicit declaration of function ‘driver_init’ [-Wimplicit-function-declaration]
-  242 |     driver_init("disk.img"); // Initializes the IDE driver to read/write sectors from/to the disk.
-      |     ^~~~~~~~~~~
-src/kernel_main.c:244:14: error: assignment to ‘struct rde *’ from incompatible pointer type ‘rde *’ {aka ‘struct root_directory_entry *’} [-Wincompatible-pointer-types]
-  244 |     file_rde = fatOpen("file.txt"); // Opens a file in a FAT filesystem on disk
-      |              ^
-src/kernel_main.c:246:17: error: passing argument 1 of ‘fatRead’ from incompatible pointer type [-Wincompatible-pointer-types]
-  246 |         fatRead(file_rde, dataBuf, sizeof(dataBuf)); // Reads data from a file into a buffer
-      |                 ^~~~~~~~
-      |                 |
-      |                 struct rde *
-src/kernel_main.c:192:18: note: expected ‘rde *’ {aka ‘struct root_directory_entry *’} but argument is of type ‘struct rde *’
-  192 | int fatRead(rde *rde_ptr, char * buf, int n) {
-      |             ~~~~~^~~~~~~
-make: *** [Makefile:34: obj/kernel_main.o] Error 1
-
+gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/rprintf.o src/rprintf.c
+gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/page.o src/page.c
+ld -melf_i386  obj/* -Tkernel.ld -o kernel
+ld: obj/kernel_main.o: in function `driver_init':
+/root/os-f25-NateCal715/src/kernel_main.c:96:(.text+0x1cc): undefined reference to `open'
+ld: obj/kernel_main.o: in function `sector_read':
+/root/os-f25-NateCal715/src/kernel_main.c:104:(.text+0x217): undefined reference to `lseek'
+ld: /root/os-f25-NateCal715/src/kernel_main.c:108:(.text+0x24e): undefined reference to `read'
+ld: obj/kernel_main.o: in function `main':
+/root/os-f25-NateCal715/src/kernel_main.c:265:(.text+0x8a2): undefined reference to `printf'
+ld: /root/os-f25-NateCal715/src/kernel_main.c:267:(.text+0x8b4): undefined reference to `printf'
+make: *** [Makefile:43: bin] Error 1
