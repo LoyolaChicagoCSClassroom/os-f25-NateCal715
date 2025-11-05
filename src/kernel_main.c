@@ -110,4 +110,9 @@ void main() {
             // keyboard_map[scancode]
         }
     }
+
+    // Three calls to FAT32 functions
+    fatInit() // Initializes the FAT filesystem driver by reading the superblock (aka boot sector) and FAT into memory.
+    fatOpen() // Opens a file in a FAT filesystem on disk.
+    fatRead() // Reads data from a file into a buffer
 }
