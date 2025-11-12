@@ -1,15 +1,10 @@
 #include <stdint.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
+// #include <stdio.h>
+// #include <fcntl.h>
+// #include <unistd.h>
 #include "rprintf.h"
 #include "fat.h"
 #include "ide.h"
-
-int fd = 0;
-int root_dir_region_start = 0;
-char boot_sector[512];
-char root_directory_region[512];
 
 #define MULTIBOOT2_HEADER_MAGIC 0xe85250d6
 
@@ -82,37 +77,34 @@ int MyPutC(int ch) {
     return ch;
 }
 
-    int print_string(void (*pc)(char), char *s) {
-        // Print each character until null terminator
-        while (*s != 0) {
-            uint8_t status = inb(0x64);
-            pc(*s);
-            s++;
-        }
-        return 0;
-    }
+    // int print_string(void (*pc)(char), char *s) {
+    //     // Print each character until null terminator
+    //     while (*s != 0) {
+    //         uint8_t status = inb(0x64);
+    //         pc(*s);
+    //         s++;
+    //     }
+    //     return 0;
+    // }
 
-void driver_init(const char *disk_image_path) {
-    fd = open(disk_image_path, O_RDONLY);
-    if (fd < 0) {
-        esp_printf(MyPutC, "Error opening disk image: %s\n", disk_image_path);
-    }
-}
+
+int root_dir_region_start = 0;
+char boot_sector[512];
+char root_directory_region[512];
 
 void sector_read(unsigned int lba, void *buffer) {
     // Read a sector from the disk image into the buffer
-    if (lseek(fd, lba * 512, SEEK_SET) < 0) {
-        esp_printf(MyPutC, "Error seeking to sector %d\n", lba);
-        return;
-    }
-    if (read(fd, buffer, 512) != 512) {
+    if (ata_lba_read(lba, (unsigned char *)buffer, 1) != 0) {
         esp_printf(MyPutC, "Error reading sector %d\n", lba);
     }
 }
 
 void fatInit() {
     // Read boot sector and RDE region
+
     sector_read(2048, boot_sector);
+
+    struct boot_sector *bs = (struct boot_sector*)boot_sector;
 
     esp_printf(MyPutC, "Number of sectors per cluster = %d\n", ((struct boot_sector*)boot_sector)->num_sectors_per_cluster);
     esp_printf(MyPutC, "Number of bytes per sector = %d\n", ((struct boot_sector*)boot_sector)->bytes_per_sector);
@@ -136,11 +128,9 @@ rde * fatOpen(char *path) {
 
     rde *rde_entries = (rde *)root_directory_region;
 
-    char target_name[8];
-    char target_ext[3];
+    char target_name[8]; for (int i = 0 ; i < 8; i++) target_name[i] = ' ';
+    char target_ext[3]; for (int i = 0 ; i < 3; i++) target_ext[i] = ' ';
 
-    for (int i = 0 ; i < 8; i++) target_name[i] = ' ';
-    for (int i = 0 ; i < 3; i++) target_ext[i] = ' ';
 
     int dot_pos = -1;
     for (int i = 0; path[i] != '\0'; i++) {
@@ -152,20 +142,20 @@ rde * fatOpen(char *path) {
 
     int name_len = (dot_pos >= 0) ?  dot_pos : 0;
     if (dot_pos < 0) {
-        name_len = 0;
         while (path[name_len] != '\0') name_len++;
     }
+
     if (name_len > 8) name_len = 8;
 
     for (int i = 0; i < name_len; i++) {
-        target_name[i] = (path[i] >= 'a' && path[i] <= 'z') ? path[i] - 32 : path[i];
+        target_name[i] = (path[i] >= 'a' && path[i] <= 'z') ? (path[i] - 32) : path[i];
     }
 
     if (dot_pos >= 0) {
         int ext_start = dot_pos + 1;
         for (int i = 0; i < 3 && path[ext_start + i] != '\0'; i++) {
             target_ext[i] = (path[ext_start + i] >= 'a' && path[ext_start + i] <= 'z') 
-            ? path[ext_start + i] - 32 
+            ? (path[ext_start + i] - 32) 
             : path[ext_start + i];
         }
     }
@@ -212,19 +202,18 @@ int fatRead(rde *rde_ptr, char * buf, int n) {
     if (rde_ptr == (rde*)0) {
         return -1; // Error: invalid RDE pointer
     }
-    // Get the starting cluster
-    uint16_t cluster = rde_ptr->cluster;
     
     // Calculate data region start
     // Data region starts after: boot sector + FAT tables + root directory
     struct boot_sector *bs = (struct boot_sector*)boot_sector;
     int root_dir_sectors = (bs->num_root_dir_entries * 32 + bs->bytes_per_sector - 1) / bs->bytes_per_sector;
-    int data_region_start = 2048 + bs->num_reserved_sectors + 
-                           (bs->num_fat_tables * bs->num_sectors_per_fat) + 
-                           root_dir_sectors;
+    int data_region_start = 2048 + bs->num_reserved_sectors 
+                        + (bs->num_fat_tables * bs->num_sectors_per_fat) 
+                        + root_dir_sectors;
     
     // Calculate the sector for this cluster
     // Cluster 2 is the first data cluster
+    uint16_t cluster = rde_ptr->cluster;
     int first_sector = data_region_start + (cluster - 2) * bs->num_sectors_per_cluster;
     
     // Read the data (simplified: only reading first cluster)
@@ -234,14 +223,17 @@ int fatRead(rde *rde_ptr, char * buf, int n) {
     }
     
     // Copy to output buffer
-    int bytes_to_copy = (n < rde_ptr->file_size) ? n : rde_ptr->file_size;
+    int bytes_to_copy = (n < (int)rde_ptr->file_size) ? n : (int)rde_ptr->file_size;
     if (bytes_to_copy > CLUSTER_SIZE) bytes_to_copy = CLUSTER_SIZE;
     
     for (int i = 0; i < bytes_to_copy; i++) {
         buf[i] = cluster_buf[i];
     }
-    buf[bytes_to_copy] = '\0'; // Null terminate if it's a text file
     
+    if (bytes_to_copy > CLUSTER_SIZE) {
+        buf[bytes_to_copy] = '\0'; // Null terminate if it's a text file
+    }
+
     return bytes_to_copy; // Return number of bytes read
 }
 
@@ -254,15 +246,19 @@ int main() {
     // fatInit() // Initializes the FAT filesystem driver by reading the superblock (aka boot sector) and FAT into memory.
     // fatOpen() // Opens a file in a FAT filesystem on disk.
     // fatRead() // Reads data from a file into a buffer
-    char dataBuf[100];
-    rde *file_rde;
-
-    driver_init("disk.img"); // Initializes the IDE driver to read/write sectors from/to the disk.
+    
     fatInit(); // Initializes the FAT filesystem driver by reading the superblock (aka boot sector) and FAT into memory.
-    file_rde = fatOpen("file.txt"); // Opens a file in a FAT filesystem on disk
-    if (file_rde != NULL) {
-        fatRead(file_rde, dataBuf, sizeof(dataBuf)); // Reads data from a file into a buffer
-        printf("data read from file = %s\n", dataBuf);
+
+    rde *file = fatOpen("file.txt"); // Opens a file in a FAT filesystem on disk
+    if (file) {
+        char dataBuf[100];
+        int n = fatRead(file, dataBuf, sizeof(dataBuf) - 1); // Reads data from a file into a buffer
+        if (n > 0) {
+            dataBuf[n] = '\0'; // Null terminate the string
+            esp_printf(MyPutC, "Read %d bytes from file.\n", n);
+        } else {
+            esp_printf(MyPutC, "Error reading file.\n");
+        }
     } else {
         printf("File not found.\n");
     }
