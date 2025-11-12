@@ -92,6 +92,24 @@ int MyPutC(int ch) {
         return 0;
     }
 
+void driver_init(const char *disk_image_path) {
+    fd = open(disk_image_path, O_RDONLY);
+    if (fd < 0) {
+        esp_printf(MyPutC, "Error opening disk image: %s\n", disk_image_path);
+    }
+}
+
+void sector_read(unsigned int lba, void *buffer) {
+    // Read a sector from the disk image into the buffer
+    if (lseek(fd, lba * 512, SEEK_SET) < 0) {
+        esp_printf(MyPutC, "Error seeking to sector %d\n", lba);
+        return;
+    }
+    if (read(fd, buffer, 512) != 512) {
+        esp_printf(MyPutC, "Error reading sector %d\n", lba);
+    }
+}
+
 void fatInit() {
     // Read boot sector and RDE region
     sector_read(2048, boot_sector);
@@ -237,7 +255,7 @@ int main() {
     // fatOpen() // Opens a file in a FAT filesystem on disk.
     // fatRead() // Reads data from a file into a buffer
     char dataBuf[100];
-    struct rde *file_rde;
+    rde *file_rde;
 
     driver_init("disk.img"); // Initializes the IDE driver to read/write sectors from/to the disk.
     fatInit(); // Initializes the FAT filesystem driver by reading the superblock (aka boot sector) and FAT into memory.
