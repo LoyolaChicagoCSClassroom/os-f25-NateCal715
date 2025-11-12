@@ -39,13 +39,6 @@ static int row_x = 0;
 static int col_y = 0;
 
 
-// void print_char(char c) {
-//     struct termbuf *vram = (struct termbuf *)0xB8000;
-//     vram[x].ASCII = c;
-//     vram[x].COLOR = 7;
-//     x++;
-// }
-
 // Pointer to the start of video memory
 static struct termbuf* const vram = (struct termbuf*)VGA_ADDRESS;
 
@@ -103,17 +96,17 @@ void fatInit() {
     // Read boot sector and RDE region
     sector_read(2048, boot_sector);
 
-    printf("Number of bytes per sector = %d\n", ((struct boot_sector*)boot_sector)->bytes_per_sector);
-    printf("Number of sectors per cluster = %d\n", ((struct boot_sector*)boot_sector)->num_sectors_per_cluster);
-    printf("Number of reserved sectors = %d\n", ((struct boot_sector*)boot_sector)->num_reserved_sectors);
-    printf("Number of FAT tables = %d\n", ((struct boot_sector*)boot_sector)->num_fat_tables);
-    printf("Number of RDEs = %d\n", ((struct boot_sector*)boot_sector)->num_root_dir_entries);
+    esp_printf(MyPutC, "Number of sectors per cluster = %d\n", ((struct boot_sector*)boot_sector)->num_sectors_per_cluster);
+    esp_printf(MyPutC, "Number of bytes per sector = %d\n", ((struct boot_sector*)boot_sector)->bytes_per_sector);
+    esp_printf(MyPutC, "Number of reserved sectors = %d\n", ((struct boot_sector*)boot_sector)->num_reserved_sectors);
+    esp_printf(MyPutC, "Number of FAT tables = %d\n", ((struct boot_sector*)boot_sector)->num_fat_tables);
+    esp_printf(MyPutC, "Number of RDEs = %d\n", ((struct boot_sector*)boot_sector)->num_root_dir_entries);
 
     root_dir_region_start = 2048
                         + ((struct boot_sector*)boot_sector)->num_reserved_sectors
                         + ((struct boot_sector*)boot_sector)->num_fat_tables * ((struct boot_sector*)boot_sector)->num_sectors_per_fat;
 
-    printf("Root directory region start (sectors) = %d\n", root_dir_region_start);
+    esp_printf(MyPutC, "Root directory region start (sectors) = %d\n", root_dir_region_start);
 
     sector_read(root_dir_region_start, root_directory_region);
     
@@ -121,31 +114,117 @@ void fatInit() {
 
 // fatOpen()
 // Find the RDE for a file given a path
-struct rde * fatOpen(char *path) {
+rde * fatOpen(char *path) {
 
-    struct rde *rde = (struct rde *)root_directory_region;
-    //Iterate through the RDE region searching for a file's RDE
-    for (int k = 0; k < 10; k++) {
-        printf("File name: \"%s.%s\"\n", rde[k].file_name, rde[k].file_extension);
-        printf("Data cluster: %d\n", rde[k].cluster);
-        printf("File size: %d\n", rde[k].file_size);
+    rde *rde_entries = (rde *)root_directory_region;
 
-        // TODO: Compare with path and return matching entry
+    char target_name[8];
+    char target_ext[3];
+
+    for (int i = 0 ; i < 8; i++) target_name[i] = ' ';
+    for (int i = 0 ; i < 3; i++) target_ext[i] = ' ';
+
+    int dot_pos = -1;
+    for (int i = 0; path[i] != '\0'; i++) {
+        if (path[i] == '.') {
+            dot_pos = i;
+            break;
+        }
     }
-    return NULL; // Return NULL if file not found
+
+    int name_len = (dot_pos >= 0) ?  dot_pos : 0;
+    if (dot_pos < 0) {
+        name_len = 0;
+        while (path[name_len] != '\0') name_len++;
+    }
+    if (name_len > 8) name_len = 8;
+
+    for (int i = 0; i < name_len; i++) {
+        target_name[i] = (path[i] >= 'a' && path[i] <= 'z') ? path[i] - 32 : path[i];
+    }
+
+    if (dot_pos >= 0) {
+        int ext_start = dot_pos + 1;
+        for (int i = 0; i < 3 && path[ext_start + i] != '\0'; i++) {
+            target_ext[i] = (path[ext_start + i] >= 'a' && path[ext_start + i] <= 'z') 
+            ? path[ext_start + i] - 32 
+            : path[ext_start + i];
+        }
+    }
+
+    int max_entries = ((struct boot_sector*)boot_sector)->num_root_dir_entries;
+
+    //Iterate through the RDE region searching for a file's RDE
+    for (int k = 0; k < max_entries; k++) {
+
+        if (rde_entries[k].file_name[0] == 0x00) break;
+
+        if ((unsigned char)rde_entries[k].file_name[0] == 0xE5) continue;
+
+        esp_printf(MyPutC, "File name: \"%s.%s\"\n", rde_entries[k].file_name, rde_entries[k].file_extension);
+        esp_printf(MyPutC, "Data cluster: %d\n", rde_entries[k].cluster);
+        esp_printf(MyPutC, "File size: %d\n", rde_entries[k].file_size);
+
+        int name_match = 1;
+        for (int i = 0; i < 8; i++) {
+            if (rde_entries[k].file_name[i] != target_name[i]) {
+                name_match = 0;
+                break;
+            }
+        }
+    
+        int ext_match = 1;
+        for (int i = 0; i < 3; i++) {
+            if (rde_entries[k].file_extension[i] != target_ext[i]) {
+                ext_match = 0;
+                break;
+            }
+        }
+
+        if (name_match && ext_match) {
+            esp_printf(MyPutC, "Found matching file!\n");
+            return &rde_entries[k];
+        }
+    }
+    return (rde*)0; // Return NULL if file not found
 }
 
-int fatRead(struct rde *rde, char * buf, int n) {
+int fatRead(rde *rde_ptr, char * buf, int n) {
     // read file data into buf from file described by rde
-    if (rde == NULL) {
+    if (rde_ptr == (rde*)0) {
         return -1; // Error: invalid RDE pointer
     }
-    // TODO: Implement file reading logic
-    // 1. Get starting cluster from rde->cluster
-    // 2. Calculate data region start
-    // 3. Read sectors corresponding to clusters
-    // 4. Follow FAT chain if file spans multiple clusters
-    return 0; // Return number of bytes read
+    // Get the starting cluster
+    uint16_t cluster = rde_ptr->cluster;
+    
+    // Calculate data region start
+    // Data region starts after: boot sector + FAT tables + root directory
+    struct boot_sector *bs = (struct boot_sector*)boot_sector;
+    int root_dir_sectors = (bs->num_root_dir_entries * 32 + bs->bytes_per_sector - 1) / bs->bytes_per_sector;
+    int data_region_start = 2048 + bs->num_reserved_sectors + 
+                           (bs->num_fat_tables * bs->num_sectors_per_fat) + 
+                           root_dir_sectors;
+    
+    // Calculate the sector for this cluster
+    // Cluster 2 is the first data cluster
+    int first_sector = data_region_start + (cluster - 2) * bs->num_sectors_per_cluster;
+    
+    // Read the data (simplified: only reading first cluster)
+    char cluster_buf[CLUSTER_SIZE];
+    for (int i = 0; i < bs->num_sectors_per_cluster; i++) {
+        sector_read(first_sector + i, cluster_buf + (i * 512));
+    }
+    
+    // Copy to output buffer
+    int bytes_to_copy = (n < rde_ptr->file_size) ? n : rde_ptr->file_size;
+    if (bytes_to_copy > CLUSTER_SIZE) bytes_to_copy = CLUSTER_SIZE;
+    
+    for (int i = 0; i < bytes_to_copy; i++) {
+        buf[i] = cluster_buf[i];
+    }
+    buf[bytes_to_copy] = '\0'; // Null terminate if it's a text file
+    
+    return bytes_to_copy; // Return number of bytes read
 }
 
 int main() {

@@ -67,6 +67,9 @@ struct root_directory_entry {
     uint32_t file_size;
 };
 
+// Type definition for convenience
+typedef struct root_directory_entry rde;
+
 /*
  *
  * Stores info about an open file
