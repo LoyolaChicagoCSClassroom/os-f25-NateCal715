@@ -1,7 +1,15 @@
 #include <stdint.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "rprintf.h"
+#include "fat.h"
+#include "ide.h"
 
-
+int fd = 0;
+int root_dir_region_start = 0;
+char boot_sector[512];
+char root_directory_region[512];
 
 #define MULTIBOOT2_HEADER_MAGIC 0xe85250d6
 
@@ -64,7 +72,7 @@ int MyPutC(int ch) {
     } else {
         vram[row_x * VGA_WIDTH + col_y].ASCII = (char)ch;
         vram[row_x * VGA_WIDTH + col_y].COLOR = 7; 
-        row_x++;
+        col_y++;
     }
 
     // Move to the next column
@@ -88,13 +96,79 @@ int MyPutC(int ch) {
             pc(*s);
             s++;
         }
+        return 0;
     }
 
+void fatInit() {
+    // Read boot sector and RDE region
+    sector_read(2048, boot_sector);
 
-void main() {
+    printf("Number of bytes per sector = %d\n", ((struct boot_sector*)boot_sector)->bytes_per_sector);
+    printf("Number of sectors per cluster = %d\n", ((struct boot_sector*)boot_sector)->num_sectors_per_cluster);
+    printf("Number of reserved sectors = %d\n", ((struct boot_sector*)boot_sector)->num_reserved_sectors);
+    printf("Number of FAT tables = %d\n", ((struct boot_sector*)boot_sector)->num_fat_tables);
+    printf("Number of RDEs = %d\n", ((struct boot_sector*)boot_sector)->num_root_dir_entries);
+
+    root_dir_region_start = 2048
+                        + ((struct boot_sector*)boot_sector)->num_reserved_sectors
+                        + ((struct boot_sector*)boot_sector)->num_fat_tables * ((struct boot_sector*)boot_sector)->num_sectors_per_fat;
+
+    printf("Root directory region start (sectors) = %d\n", root_dir_region_start);
+
+    sector_read(root_dir_region_start, root_directory_region);
+    
+}
+
+// fatOpen()
+// Find the RDE for a file given a path
+struct rde * fatOpen(char *path) {
+
+    struct rde *rde = (struct rde *)root_directory_region;
+    //Iterate through the RDE region searching for a file's RDE
+    for (int k = 0; k < 10; k++) {
+        printf("File name: \"%s.%s\"\n", rde[k].file_name, rde[k].file_extension);
+        printf("Data cluster: %d\n", rde[k].cluster);
+        printf("File size: %d\n", rde[k].file_size);
+
+        // TODO: Compare with path and return matching entry
+    }
+    return NULL; // Return NULL if file not found
+}
+
+int fatRead(struct rde *rde, char * buf, int n) {
+    // read file data into buf from file described by rde
+    if (rde == NULL) {
+        return -1; // Error: invalid RDE pointer
+    }
+    // TODO: Implement file reading logic
+    // 1. Get starting cluster from rde->cluster
+    // 2. Calculate data region start
+    // 3. Read sectors corresponding to clusters
+    // 4. Follow FAT chain if file spans multiple clusters
+    return 0; // Return number of bytes read
+}
+
+int main() {
 
     esp_printf(MyPutC, "Hello, World!\n");
 
+
+    // Three calls to FAT32 functions
+    // fatInit() // Initializes the FAT filesystem driver by reading the superblock (aka boot sector) and FAT into memory.
+    // fatOpen() // Opens a file in a FAT filesystem on disk.
+    // fatRead() // Reads data from a file into a buffer
+    char dataBuf[100];
+    struct rde *file_rde;
+
+    driver_init("disk.img"); // Initializes the IDE driver to read/write sectors from/to the disk.
+    fatInit(); // Initializes the FAT filesystem driver by reading the superblock (aka boot sector) and FAT into memory.
+    file_rde = fatOpen("file.txt"); // Opens a file in a FAT filesystem on disk
+    if (file_rde != NULL) {
+        fatRead(file_rde, dataBuf, sizeof(dataBuf)); // Reads data from a file into a buffer
+        printf("data read from file = %s\n", dataBuf);
+    } else {
+        printf("File not found.\n");
+    }
 
     while(1) {
         uint8_t status = inb(0x64);
@@ -110,9 +184,7 @@ void main() {
             // keyboard_map[scancode]
         }
     }
-
-    // Three calls to FAT32 functions
-    fatInit() // Initializes the FAT filesystem driver by reading the superblock (aka boot sector) and FAT into memory.
-    fatOpen() // Opens a file in a FAT filesystem on disk.
-    fatRead() // Reads data from a file into a buffer
+    
+    return 0;
+    
 }
