@@ -104,8 +104,6 @@ void fatInit() {
 
     sector_read(2048, boot_sector);
 
-    struct boot_sector *bs = (struct boot_sector*)boot_sector;
-
     esp_printf(MyPutC, "Number of sectors per cluster = %d\n", ((struct boot_sector*)boot_sector)->num_sectors_per_cluster);
     esp_printf(MyPutC, "Number of bytes per sector = %d\n", ((struct boot_sector*)boot_sector)->bytes_per_sector);
     esp_printf(MyPutC, "Number of reserved sectors = %d\n", ((struct boot_sector*)boot_sector)->num_reserved_sectors);
