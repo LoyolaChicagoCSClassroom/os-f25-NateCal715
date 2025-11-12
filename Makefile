@@ -25,6 +25,7 @@ OBJS = \
 	kernel_main.o \
 	rprintf.o \
 	page.o \
+	ide.o \
 
 # Make sure to keep a blank line here after OBJS list
 
