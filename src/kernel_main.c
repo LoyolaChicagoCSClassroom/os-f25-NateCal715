@@ -260,7 +260,7 @@ int main() {
             esp_printf(MyPutC, "Error reading file.\n");
         }
     } else {
-        printf("File not found.\n");
+        esp_printf(MyPutC, "File not found.\n");
     }
 
     while(1) {
