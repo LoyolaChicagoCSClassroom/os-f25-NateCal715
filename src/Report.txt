@@ -18,3 +18,24 @@ ld: obj/kernel_main.o: in function `main':
 /root/os-f25-NateCal715/src/kernel_main.c:243:(.text+0x5a0): undefined reference to `ansi_init'
 ld: /root/os-f25-NateCal715/src/kernel_main.c:269:(.text+0x62e): undefined reference to `ansi_init'
 ld: /root/os-f25-NateCal715/src/kernel_main.c:270:(.text+0x63b): undefined reference to `kilo_run'
+
+
+gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/kernel_main.o src/kernel_main.c
+src/kernel_main.c:41:30: warning: ‘vram’ defined but not used [-Wunused-const-variable=]
+   41 | static struct termbuf* const vram = (struct termbuf*)VGA_ADDRESS;
+      |                              ^~~~
+src/kernel_main.c:37:12: warning: ‘col_y’ defined but not used [-Wunused-variable]
+   37 | static int col_y = 0;
+      |            ^~~~~
+src/kernel_main.c:36:12: warning: ‘row_x’ defined but not used [-Wunused-variable]
+   36 | static int row_x = 0;
+      |            ^~~~~
+gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/rprintf.o src/rprintf.c
+src/rprintf.c:159:5: error: conflicting types for ‘esp_sprintf’; have ‘int(char *, char *, ...)’
+  159 | int esp_sprintf(char *buf, char *ctrl, ...)
+      |     ^~~~~~~~~~~
+In file included from src/rprintf.c:10:
+src/rprintf.h:21:6: note: previous declaration of ‘esp_sprintf’ with type ‘void(char *, char *, ...)’
+   21 | void esp_sprintf(char *buf, char *ctrl, ...);
+      |      ^~~~~~~~~~~
+make: *** [Makefile:39: obj/rprintf.o] Error 1
