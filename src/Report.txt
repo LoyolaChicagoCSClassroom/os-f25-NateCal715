@@ -1,41 +1,52 @@
 gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/kernel_main.o src/kernel_main.c
-src/kernel_main.c:40:30: warning: ‘vram’ defined but not used [-Wunused-const-variable=]
-   40 | static struct termbuf* const vram = (struct termbuf*)VGA_ADDRESS;
-      |                              ^~~~
-src/kernel_main.c:36:12: warning: ‘col_y’ defined but not used [-Wunused-variable]
-   36 | static int col_y = 0;
-      |            ^~~~~
-src/kernel_main.c:35:12: warning: ‘row_x’ defined but not used [-Wunused-variable]
-   35 | static int row_x = 0;
-      |            ^~~~~
 gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/rprintf.o src/rprintf.c
 gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/page.o src/page.c
 gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/ide.o src/ide.c
-ld -melf_i386  obj/* -Tkernel.ld -o kernel
-ld: obj/kernel_main.o: in function `MyPutC':
-/root/os-f25-NateCal715/src/kernel_main.c:80:(.text+0x28): undefined reference to `ansi_putc'
-ld: obj/kernel_main.o: in function `main':
-/root/os-f25-NateCal715/src/kernel_main.c:243:(.text+0x5a0): undefined reference to `ansi_init'
-ld: /root/os-f25-NateCal715/src/kernel_main.c:269:(.text+0x62e): undefined reference to `ansi_init'
-ld: /root/os-f25-NateCal715/src/kernel_main.c:270:(.text+0x63b): undefined reference to `kilo_run'
+gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/KILO.o src/KILO.c
+In file included from src/KILO.c:13:
+src/rprintf.h:11:9: warning: "NULL" redefined
+   11 | #define NULL (void*)0
+      |         ^~~~
+In file included from /usr/include/time.h:29,
+                 from src/KILO.c:11:
+/usr/lib/gcc/x86_64-pc-linux-gnu/14/include/stddef.h:419:9: note: this is the location of the previous definition
+  419 | #define NULL ((void *)0)
+      |         ^~~~
+In file included from src/KILO.c:15:
+src/keyboard.h:8:21: error: expected identifier before numeric constant
+    8 | #define ARROW_LEFT  1001
+      |                     ^~~~
+src/KILO.c:30:5: note: in expansion of macro ‘ARROW_LEFT’
+   30 |     ARROW_LEFT = 1000,
+      |     ^~~~~~~~~~
+src/KILO.c: In function ‘editorPrompt’:
+src/KILO.c:543:18: error: ‘DEL_KEY’ undeclared (first use in this function)
+  543 |         if (c == DEL_KEY || c == BACKSPACE || c == KILO_CTRL_KEY('h')) {
+      |                  ^~~~~~~
+src/KILO.c:543:18: note: each undeclared identifier is reported only once for each function it appears in
+src/KILO.c: In function ‘editorProcessKeypress’:
+src/KILO.c:631:14: error: ‘DEL_KEY’ undeclared (first use in this function)
+  631 |         case DEL_KEY:
+      |              ^~~~~~~
+src/KILO.c:643:14: error: ‘PAGE_UP’ undeclared (first use in this function)
+  643 |         case PAGE_UP:
+      |              ^~~~~~~
+src/KILO.c:644:14: error: ‘PAGE_DOWN’ undeclared (first use in this function)
+  644 |         case PAGE_DOWN:
+      |              ^~~~~~~~~
+src/KILO.c:658:14: error: ‘HOME_KEY’ undeclared (first use in this function)
+  658 |         case HOME_KEY:
+      |              ^~~~~~~~
+src/KILO.c:662:14: error: ‘END_KEY’ undeclared (first use in this function); did you mean ‘ENOKEY’?
+  662 |         case END_KEY:
+      |              ^~~~~~~
+      |              ENOKEY
+src/KILO.c:609:16: warning: variable ‘quit_times’ set but not used [-Wunused-but-set-variable]
+  609 |     static int quit_times = KILO_QUIT_TIMES;
+      |                ^~~~~~~~~~
+make: *** [Makefile:39: obj/KILO.o] Error 1
+localhost ~/os-f25-NateCal715 # make run
+qemu-system-i386 -hda rootfs.img
+qemu-system-i386: -hda rootfs.img: Could not open 'rootfs.img': No such file or directory
+make: *** [Makefile:69: run] Error 1
 
-
-gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/kernel_main.o src/kernel_main.c
-src/kernel_main.c:41:30: warning: ‘vram’ defined but not used [-Wunused-const-variable=]
-   41 | static struct termbuf* const vram = (struct termbuf*)VGA_ADDRESS;
-      |                              ^~~~
-src/kernel_main.c:37:12: warning: ‘col_y’ defined but not used [-Wunused-variable]
-   37 | static int col_y = 0;
-      |            ^~~~~
-src/kernel_main.c:36:12: warning: ‘row_x’ defined but not used [-Wunused-variable]
-   36 | static int row_x = 0;
-      |            ^~~~~
-gcc -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall  -c -g -o obj/rprintf.o src/rprintf.c
-src/rprintf.c:159:5: error: conflicting types for ‘esp_sprintf’; have ‘int(char *, char *, ...)’
-  159 | int esp_sprintf(char *buf, char *ctrl, ...)
-      |     ^~~~~~~~~~~
-In file included from src/rprintf.c:10:
-src/rprintf.h:21:6: note: previous declaration of ‘esp_sprintf’ with type ‘void(char *, char *, ...)’
-   21 | void esp_sprintf(char *buf, char *ctrl, ...);
-      |      ^~~~~~~~~~~
-make: *** [Makefile:39: obj/rprintf.o] Error 1
