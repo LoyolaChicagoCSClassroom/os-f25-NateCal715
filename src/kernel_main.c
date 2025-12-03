@@ -6,7 +6,7 @@
 #include "fat.h"
 #include "ide.h"
 #include "ansi.h"
-//#include "KILO.h"
+#include "KILO.h"
 
 #define MULTIBOOT2_HEADER_MAGIC 0xe85250d6
 
