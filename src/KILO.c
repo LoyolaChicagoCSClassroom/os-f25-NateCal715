@@ -3,7 +3,6 @@
 #define _BSD_SOURCE
 #define _GNU_SOURCE
 
-#include <ctype.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -24,6 +23,10 @@ extern int MyPutC(int ch);
 #define KILO_QUIT_TIMES 3
 
 #define KILO_CTRL_KEY(k) ((k) & 0x1f)
+
+static int iscntrl(int c) {
+    return (c >= 0 && c < 31) || (c == 127);
+}
 
 // data
 

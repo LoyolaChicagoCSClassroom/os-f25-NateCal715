@@ -29,6 +29,7 @@ OBJS = \
 	KILO.o \
 	keyboard.o \
 	ansi.o \
+	mini_libc.o \
 
 # Make sure to keep a blank line here after OBJS list
 
