@@ -24,21 +24,21 @@ uint8_t inb(uint16_t _port) {
 
 
 
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
-#define VGA_ADDRESS 0xb8000
+// #define VGA_WIDTH 80
+// #define VGA_HEIGHT 25
+// #define VGA_ADDRESS 0xb8000
 
-struct termbuf {
-    char ASCII;
-    char COLOR;
-};
+// struct termbuf {
+//     char ASCII;
+//     char COLOR;
+// };
 
-static int row_x = 0;
-static int col_y = 0;
+// static int row_x = 0;
+// static int col_y = 0;
 
 
-// Pointer to the start of video memory
-static struct termbuf* const vram = (struct termbuf*)VGA_ADDRESS;
+// // Pointer to the start of video memory
+// static struct termbuf* const vram = (struct termbuf*)VGA_ADDRESS;
 
 // void scroll() {
 //     // Scroll the screen up by one row
