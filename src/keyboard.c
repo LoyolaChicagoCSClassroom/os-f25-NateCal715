@@ -65,3 +65,4 @@ int kbd_read_char(void) {
             }
         }
     }
+}
