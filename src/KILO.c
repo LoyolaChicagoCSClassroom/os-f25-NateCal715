@@ -12,7 +12,7 @@
 
 #include "rprintf.h"
 #include "fat.h"
-#include "keyboard.c"
+#include "keyboard.h"
 
 extern int MyPutC(int ch);
 
@@ -505,12 +505,38 @@ void editorRefreshScreen() {
 }
 
 void editorSetStatusMessage(const char *fmt, ...) {
+    char buf[80];
+
     va_list ap;
     va_start(ap, fmt);
-    char buf[80];
-    esp_sprintf(buf, fmt, ap);
-    strncpy(E.statusmsg, buf, 79);
+    
+    char tmpfmt[80];
+    strncpy(tmpfmt, fmt, 79);
+    
+    char *dst = buf;
+    const char *p = tmpfmt;
+
+    while (*p && dst - buf < 79) {
+        if (*p == '%' && (*(p + 1) == 's' ||  *(p + 1) == 'd')) {
+            if (*(p + 1) == 's') {
+                char *s = va_arg(ap, char*);
+                int n = esp_sprintf(dst, "%s", s);
+                dst += n;
+            } else {
+                int d = va_arg(ap, int);
+                int n = esp_sprintf(dst, "%d", d);
+                dst += n;
+            }
+            p += 2;
+        } else {
+            *dst++ = *p++;
+        }
+    }
+    *dst = 0;
     va_end(ap);
+
+    strncpy(E.statusmsg, buf, 79);
+    E.statusmsg[79] = 0;
     E.statusmsg_time = time(NULL);
 }
 
