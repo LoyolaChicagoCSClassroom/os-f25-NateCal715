@@ -5,6 +5,7 @@
 #include "rprintf.h"
 #include "fat.h"
 #include "ide.h"
+#include "ansi.h"
 
 #define MULTIBOOT2_HEADER_MAGIC 0xe85250d6
 
@@ -37,44 +38,45 @@ static int col_y = 0;
 // Pointer to the start of video memory
 static struct termbuf* const vram = (struct termbuf*)VGA_ADDRESS;
 
-void scroll() {
-    // Scroll the screen up by one row
-    for (int x = 1; x < VGA_HEIGHT; x++) {
-        for (int y = 0; y < VGA_WIDTH; y++) {
-            vram[(x - 1) * VGA_WIDTH + y] = vram[x * VGA_WIDTH + y];
-        }
-    }
-    // Clear the last row
-    for (int y = 0; y < VGA_WIDTH; y++) {
-        vram[(VGA_HEIGHT - 1) * VGA_WIDTH + y].ASCII = ' ';
-        vram[(VGA_HEIGHT - 1) * VGA_WIDTH + y].COLOR = 7;
-    }
-}
+// void scroll() {
+//     // Scroll the screen up by one row
+//     for (int x = 1; x < VGA_HEIGHT; x++) {
+//         for (int y = 0; y < VGA_WIDTH; y++) {
+//             vram[(x - 1) * VGA_WIDTH + y] = vram[x * VGA_WIDTH + y];
+//         }
+//     }
+//     // Clear the last row
+//     for (int y = 0; y < VGA_WIDTH; y++) {
+//         vram[(VGA_HEIGHT - 1) * VGA_WIDTH + y].ASCII = ' ';
+//         vram[(VGA_HEIGHT - 1) * VGA_WIDTH + y].COLOR = 7;
+//     }
+// }
 
 
 int MyPutC(int ch) {   
-    // Handle newline character
-    if (ch == '\n') {
-        row_x++;
-        col_y = 0;
-    } else {
-        vram[row_x * VGA_WIDTH + col_y].ASCII = (char)ch;
-        vram[row_x * VGA_WIDTH + col_y].COLOR = 7; 
-        col_y++;
-    }
+    // // Handle newline character
+    // if (ch == '\n') {
+    //     row_x++;
+    //     col_y = 0;
+    // } else {
+    //     vram[row_x * VGA_WIDTH + col_y].ASCII = (char)ch;
+    //     vram[row_x * VGA_WIDTH + col_y].COLOR = 7; 
+    //     col_y++;
+    // }
 
-    // Move to the next column
-    if (col_y >= VGA_WIDTH) {
-        col_y = 0;
-        row_x++;
-    }
-    // Scroll if we reach the bottom of the screen
-    if (row_x >= VGA_HEIGHT) {
-        scroll();
-        row_x = VGA_HEIGHT - 1;
-    }
+    // // Move to the next column
+    // if (col_y >= VGA_WIDTH) {
+    //     col_y = 0;
+    //     row_x++;
+    // }
+    // // Scroll if we reach the bottom of the screen
+    // if (row_x >= VGA_HEIGHT) {
+    //     scroll();
+    //     row_x = VGA_HEIGHT - 1;
+    // }
 
-    return ch;
+    // return ch;
+    return ansi_putc(ch);
 }
 
     // int print_string(void (*pc)(char), char *s) {
@@ -237,6 +239,8 @@ int fatRead(rde *rde_ptr, char * buf, int n) {
 
 int main() {
 
+    ansi_init();
+
     esp_printf(MyPutC, "Booting kernel...\n");
 
 
@@ -246,8 +250,6 @@ int main() {
     // fatRead() // Reads data from a file into a buffer
     
     fatInit(); // Initializes the FAT filesystem driver by reading the superblock (aka boot sector) and FAT into memory.
-
-    kilo_run("file.txt"); // Start the KILO text editor without opening a file
 
     rde *file = fatOpen("file.txt"); // Opens a file in a FAT filesystem on disk
     if (file) {
@@ -262,6 +264,8 @@ int main() {
     } else {
         esp_printf(MyPutC, "File not found.\n");
     }
+
+    kilo_run("file.txt"); // Open and display file in Kilo editor
 
     while(1) {
         uint8_t status = inb(0x64);

@@ -503,7 +503,7 @@ void editorRefreshScreen() {
     editorDrawMessageBar(&ab);
 
     char buf[32];
-    esp_printf(buf, "\x1b[%d;%dH", 
+    esp_sprintf(buf, "\x1b[%d;%dH", 
         (E.cy - E.rowoff) + 1,
         (E.rx - E.coloff) + 1);
     abAppend(&ab, buf, strlen(buf));
