@@ -24,6 +24,10 @@ static int num1;
 static int num2;
 static char pad_character;
 
+// For esp_sprintf
+static char *sprintf_buf;
+static int sprintf_count;
+
 size_t strlen(const char *str) {
     unsigned int len = 0;
     while(str[len] != '\0') {
@@ -48,7 +52,14 @@ int isdig(int c) {
 }
 
 
+// Helper for sprintf
 
+static int sprintf_putc(int c) {
+   if (sprintf_buf) {
+      sprintf_buf[sprintf_count++] = (char)c;
+   }
+   return c;
+}
 
 /*---------------------------------------------------*/
 /*                                                   */
@@ -161,12 +172,17 @@ int esp_sprintf(char *buf, char *ctrl, ...)
   va_list args;
   va_start(args, ctrl);
   
-   // Simple implementation - just write to the buffer
-   // For a real implementation, you'd parse the format string
-   // and format the arguments accordingly.
+   sprintf_buf = buf;
+   sprintf_count = 0;
+
+   esp_vprintf( sprintf_putc, ctrl, args);
   
+   if (buf) {
+      buf[sprintf_count] = '\0';
+   }
+
    va_end( args );
-  return 0;
+   return sprintf_count;
 }
 
 void esp_printf( const func_ptr f_ptr, charptr ctrl, ...)
