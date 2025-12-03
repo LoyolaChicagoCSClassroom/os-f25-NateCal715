@@ -128,7 +128,7 @@ char *editorPrompt(char *prompt, void (*callback)(char *, int));
 
 void die(const char *s) {
     MyPutC('\n');
-    MyPutC('\n')
+    MyPutC('\n');
     esp_printf(MyPutC, "Kilo error: %s\n", s);
     while (1) { } // halt the system
 }
