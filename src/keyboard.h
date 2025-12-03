@@ -3,11 +3,18 @@
 
 #include <stdint.h>
 
-// Arrow key codes
-#define ARROW_UP    1000
-#define ARROW_LEFT  1001
-#define ARROW_RIGHT  1002
-#define ARROW_DOWN 1003
+enum editorKey {
+    BACKSPACE = 127,
+    ARROW_LEFT = 1000,
+    ARROW_RIGHT,
+    ARROW_UP,
+    ARROW_DOWN,
+    DEL_KEY,
+    HOME_KEY,
+    END_KEY,
+    PAGE_UP,
+    PAGE_DOWN
+};
 
 int kbd_read_char(void); // Reads a character from the keyboard
 
