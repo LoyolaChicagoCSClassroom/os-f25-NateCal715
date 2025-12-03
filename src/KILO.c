@@ -436,7 +436,7 @@ void editorDrawRows(struct abuf *ab) {
         if (filerow >= E.numrows) {
             if (E.numrows == 0 && y == E.screenrows / 3) {
                 char welcome[80];
-                int welcomelen = esp_printf(welcome,
+                int welcomelen = esp_sprintf(welcome,
                     "Kilo editor -- version %s", KILO_VERSION);
                 if (welcomelen > E.screencols) welcomelen = E.screencols;
                 int padding = (E.screencols - welcomelen) / 2;
@@ -464,10 +464,10 @@ void editorDrawRows(struct abuf *ab) {
 void editorDrawStatusBar(struct abuf *ab) {
     abAppend(ab, "\x1b[7m", 4);
     char status[80], rstatus[80];
-    int len = esp_printf(status, "%.20s - %d lines %s",
+    int len = esp_sprintf(status, "%.20s - %d lines %s",
         E.filename ? E.filename : "[No Name]", E.numrows,
         E.dirty ? "(modified)" : "");
-    int rlen = esp_printf(rstatus, "%d/%d", E.cy + 1, E.numrows);
+    int rlen = esp_sprintf(rstatus, "%d/%d", E.cy + 1, E.numrows);
     if (len > E.screencols) len = E.screencols;
     abAppend(ab, status, len);
     while (len < E.screencols) {

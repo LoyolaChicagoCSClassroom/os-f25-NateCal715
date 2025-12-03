@@ -32,6 +32,16 @@ int kbd_read_char(void) {
 
         if (status & 1) {
             uint8_t scancode = inb(0x60);
+
+            if (scancode == 0xE0) {
+                uint8_t ext = inb(0x60);
+                switch(ext) {
+                    case 0x48: return ARROW_UP;
+                    case 0x4B: return ARROW_LEFT;
+                    case 0x4D: return ARROW_RIGHT;
+                    case 0x50: return ARROW_DOWN;
+                }
+            }
             
             if (scancode > 128) {
                 continue; // Ignore key releases
@@ -42,4 +52,3 @@ int kbd_read_char(void) {
             }
         }
     }
-    

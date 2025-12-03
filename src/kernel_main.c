@@ -247,7 +247,7 @@ int main() {
     
     fatInit(); // Initializes the FAT filesystem driver by reading the superblock (aka boot sector) and FAT into memory.
 
-    kilo_run(NULL); // Start the KILO text editor without opening a file
+    kilo_run("file.txt"); // Start the KILO text editor without opening a file
 
     rde *file = fatOpen("file.txt"); // Opens a file in a FAT filesystem on disk
     if (file) {
