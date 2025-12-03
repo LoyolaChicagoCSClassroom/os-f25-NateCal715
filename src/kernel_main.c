@@ -7,6 +7,7 @@
 #include "ide.h"
 #include "ansi.h"
 #include "KILO.h"
+#include "keyboard.h"
 
 #define MULTIBOOT2_HEADER_MAGIC 0xe85250d6
 #define SECTOR_SIZE 512
