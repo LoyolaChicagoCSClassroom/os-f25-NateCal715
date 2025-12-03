@@ -27,7 +27,6 @@ OBJS = \
 	page.o \
 	ide.o \
 	KILO.o \
-	fat.o \
 	keyboard.o \
 	ansi.o \
 
