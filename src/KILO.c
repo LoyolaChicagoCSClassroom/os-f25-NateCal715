@@ -87,7 +87,6 @@ struct editorConfig {
     char statusmsg[80];
     time_t statusmsg_time;
     struct editorSyntax *syntax;
-    struct termios orig_termios;
 };
 
 struct editorConfig E;
@@ -133,10 +132,6 @@ void die(const char *s) {
     esp_printf(MyPutC, "Kilo error: %s\n", s);
     while (1) { } // halt the system
 }
-
-void disableRawMode() {}
-
-void enableRawMode() {}
 
 int editorReadKey() {
     return kbd_read_char();
@@ -665,6 +660,7 @@ void editorProcessKeypress() {
     quit_times = KILO_QUIT_TIMES;
 }
 
+
 // init
 
 void initEditor() {
@@ -698,6 +694,6 @@ void kilo_run(const char *filename) {
 
     for (;;) {
         editorRefreshScreen();
-        if (editorProcessKeypress_should_exit()) break;
+        editorProcessKeypress();
     }
 }

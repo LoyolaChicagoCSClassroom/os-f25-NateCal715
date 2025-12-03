@@ -190,7 +190,7 @@ rde * fatOpen(char *path) {
         }
 
         if (name_match && ext_match) {
-            esp_printf(MyPutC, "Found matching file!\n");
+            // esp_printf(MyPutC, "Found matching file!\n");
             return &rde_entries[k];
         }
     }
@@ -257,7 +257,7 @@ int main() {
         int n = fatRead(file, dataBuf, sizeof(dataBuf) - 1); // Reads data from a file into a buffer
         if (n > 0) {
             dataBuf[n] = '\0'; // Null terminate the string
-            esp_printf(MyPutC, "Read %d bytes from file.\n", n);
+            // esp_printf(MyPutC, "Read %d bytes from file.\n", n);
         } else {
             esp_printf(MyPutC, "Error reading file.\n");
         }
@@ -265,6 +265,7 @@ int main() {
         esp_printf(MyPutC, "File not found.\n");
     }
 
+    ansi_init(); // Re-initialize ANSI terminal state
     kilo_run("file.txt"); // Open and display file in Kilo editor
 
     
