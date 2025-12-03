@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "keyboard.h"
 
 extern uint8_t inb(uint16_t _port); 
 
@@ -26,6 +27,8 @@ static const char keyboard_map[128] = {
    0, 0, 0, 0, 0, 0, 0,
 };
 
+static int waiting_for_extended = 0;
+
 int kbd_read_char(void) {
     for (;;) {
         uint8_t status = inb(0x64);
@@ -34,13 +37,22 @@ int kbd_read_char(void) {
             uint8_t scancode = inb(0x60);
 
             if (scancode == 0xE0) {
-                uint8_t ext = inb(0x60);
-                switch(ext) {
-                    case 0x48: return ARROW_UP;
-                    case 0x4B: return ARROW_LEFT;
-                    case 0x4D: return ARROW_RIGHT;
-                    case 0x50: return ARROW_DOWN;
+                waiting_for_extended = 1;
+                continue;
+            }
+
+            if (waiting_for_extended) {
+                waiting_for_extended = 0;
+
+                if (scancode <= 0x7F) {
+                    switch(scancode) {
+                        case 0x48: return ARROW_UP;
+                        case 0x4B: return ARROW_LEFT;
+                        case 0x4D: return ARROW_RIGHT;
+                        case 0x50: return ARROW_DOWN;
+                    }
                 }
+                continue;
             }
             
             if (scancode > 128) {
@@ -48,7 +60,8 @@ int kbd_read_char(void) {
             }
             
             char ch = keyboard_map[scancode];
-            if (ch != 0) return ch;
+            if (ch != 0) {
+                return ch;
             }
         }
     }

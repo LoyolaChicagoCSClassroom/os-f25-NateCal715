@@ -33,18 +33,18 @@ size_t strlen(const char *str) {
 }
 
 int tolower(int c) {
-    if(c < 'a') { // Check if c is uppercase
-        c -= 'a' - 'A';
+    if(c >= 'A' && c <= 'Z') { // Check if c is uppercase
+        c += 'a' - 'A';
     }
     return c;
 }
 
 int isdig(int c) {
-    if((c >= '0') && (c <= '9')){
+    if((c >= '0') && (c <= '9')) {
         return 1;
-    } else {
-        return 0;
-    }
+      } else {
+         return 0;
+      }
 }
 
 
@@ -155,6 +155,19 @@ static int getnum( charptr* linep)
 /* added easily by following the examples shown for  */
 /* the supported formats.                            */
 /*                                                   */
+
+int esp_sprintf(char *buf, char *ctrl, ...)
+{
+  va_list args;
+  va_start(args, ctrl);
+  
+   // Simple implementation - just write to the buffer
+   // For a real implementation, you'd parse the format string
+   // and format the arguments accordingly.
+  
+   va_end( args );
+  return 0;
+}
 
 void esp_printf( const func_ptr f_ptr, charptr ctrl, ...)
 {

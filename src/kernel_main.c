@@ -9,6 +9,7 @@
 #include "KILO.h"
 
 #define MULTIBOOT2_HEADER_MAGIC 0xe85250d6
+#define SECTOR_SIZE 512
 
 // Multiboot2 header for GRUB
 const unsigned int multiboot_header[] __attribute__((section(".multiboot"))) = {
@@ -214,13 +215,13 @@ int fatRead(rde *rde_ptr, char * buf, int n) {
     
     // Calculate the sector for this cluster
     // Cluster 2 is the first data cluster
-    uint16_t cluster = rde_ptr->cluster;
-    int first_sector = data_region_start + (cluster - 2) * bs->num_sectors_per_cluster;
+    uint16_t cluster = rde_ptr -> cluster;
+    int first_sector = data_region_start + (cluster - 2) * bs -> num_sectors_per_cluster;
     
     // Read the data (simplified: only reading first cluster)
     char cluster_buf[CLUSTER_SIZE];
-    for (int i = 0; i < bs->num_sectors_per_cluster; i++) {
-        sector_read(first_sector + i, cluster_buf + (i * 512));
+    for (int i = 0; i < bs -> num_sectors_per_cluster; i++) {
+        sector_read(first_sector + i, cluster_buf + (i * SECTOR_SIZE));
     }
     
     // Copy to output buffer
@@ -231,7 +232,7 @@ int fatRead(rde *rde_ptr, char * buf, int n) {
         buf[i] = cluster_buf[i];
     }
     
-    if (bytes_to_copy > CLUSTER_SIZE) {
+    if (bytes_to_copy < n) {
         buf[bytes_to_copy] = '\0'; // Null terminate if it's a text file
     }
 

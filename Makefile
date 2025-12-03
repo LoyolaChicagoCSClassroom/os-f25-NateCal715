@@ -26,6 +26,10 @@ OBJS = \
 	rprintf.o \
 	page.o \
 	ide.o \
+	KILO.o \
+	fat.o \
+	keyboard.o \
+	ansi.o \
 
 # Make sure to keep a blank line here after OBJS list
 
