@@ -5,20 +5,14 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <termios.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "rprintf.h"
 #include "fat.h"
-#include "keyboard.h"
+#include "keyboard.c"
 
 extern int MyPutC(int ch);
 
@@ -134,11 +128,10 @@ char *editorPrompt(char *prompt, void (*callback)(char *, int));
 // terminal
 
 void die(const char *s) {
-    write(STDOUT_FILENO, "\x1b[2J", 4);
-    write(STDOUT_FILENO, "\x1b[H", 3);
-
-    perror(s);
-    exit(1);
+    MyPutC('\n');
+    MyPutC('\n')
+    esp_printf(MyPutC, "Kilo error: %s\n", s);
+    while (1) { } // halt the system
 }
 
 void disableRawMode() {}
@@ -519,7 +512,9 @@ void editorRefreshScreen() {
 void editorSetStatusMessage(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    vsnprintf(E.statusmsg, sizeof(E.statusmsg), fmt, ap);
+    char buf[80];
+    esp_sprintf(buf, fmt, ap);
+    strncpy(E.statusmsg, buf, 79);
     va_end(ap);
     E.statusmsg_time = time(NULL);
 }
@@ -614,16 +609,7 @@ void editorProcessKeypress() {
             break;
 
         case KILO_CTRL_KEY('q'):
-            if (E.dirty && quit_times > 0) {
-                editorSetStatusMessage("WARNING!!! File has unsaved changes. "
-                    "Press Ctrl-Q %d more times to quit.", quit_times);
-                quit_times--;
-                return;
-            }
-            write(STDOUT_FILENO, "\x1b[2J", 4);
-            write(STDOUT_FILENO, "\x1b[H", 3);
-            exit(0);
-            break;
+            return; // leave editorProcessKeypress to quit
 
         case KILO_CTRL_KEY('s'):
             editorSave();
@@ -712,6 +698,6 @@ void kilo_run(const char *filename) {
 
     for (;;) {
         editorRefreshScreen();
-        editorProcessKeypress();
+        if (editorProcessKeypress_should_exit()) break;
     }
 }

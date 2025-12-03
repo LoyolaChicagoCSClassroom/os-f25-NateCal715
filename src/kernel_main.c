@@ -169,9 +169,9 @@ rde * fatOpen(char *path) {
 
         if ((unsigned char)rde_entries[k].file_name[0] == 0xE5) continue;
 
-        esp_printf(MyPutC, "File name: \"%s.%s\"\n", rde_entries[k].file_name, rde_entries[k].file_extension);
-        esp_printf(MyPutC, "Data cluster: %d\n", rde_entries[k].cluster);
-        esp_printf(MyPutC, "File size: %d\n", rde_entries[k].file_size);
+        // esp_printf(MyPutC, "File name: \"%s.%s\"\n", rde_entries[k].file_name, rde_entries[k].file_extension);
+        // esp_printf(MyPutC, "Data cluster: %d\n", rde_entries[k].cluster);
+        // esp_printf(MyPutC, "File size: %d\n", rde_entries[k].file_size);
 
         int name_match = 1;
         for (int i = 0; i < 8; i++) {
@@ -267,20 +267,6 @@ int main() {
 
     kilo_run("file.txt"); // Open and display file in Kilo editor
 
-    while(1) {
-        uint8_t status = inb(0x64);
-
-        if(status & 1) {
-            uint8_t scancode = inb(0x60);
-            
-            if (scancode > 128) {
-                continue; // Ignore key releases
-            }
-            
-            esp_printf(MyPutC, "0x%02x\n    %c\n", scancode);
-            // keyboard_map[scancode]
-        }
-    }
     
     return 0;
     
