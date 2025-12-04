@@ -268,8 +268,8 @@ int main() {
         esp_printf(MyPutC, "File not found.\n");
     }
 
-    ansi_init(); // Re-initialize ANSI terminal state
-    kilo_run("file.txt"); // Open and display file in Kilo editor
+    
+    // kilo_run("file.txt"); // Open and display file in Kilo editor
     
     // // DEBUG: simple echo test for keyboard.c
     // esp_printf(MyPutC, "Keyboard debug mode. Press keys to see their codes.\n");
@@ -290,6 +290,55 @@ int main() {
     //         esp_printf(MyPutC, "[0x%x]", c);
     //     }
     // }
+
+    esp_printf(MyPutC, "Press 1 for KILO editor, 2 for keyboard debug: ");
+    int choice = kbd_read_char();
+    MyPutC('\n');
+
+    ansi_init(); // Reinitialize ANSI terminal state
+
+    if (choice == '1') {
+        esp_printf(MyPutC, "Starting KILO editor...\n");
+        kilo_run("file.txt");
+        esp_printf(MyPutC, "KILO exited.\n");
+    } else {
+        esp_printf(MyPutC, "Keyboard debug mode. Press keys (Ctrl+Q to see quit attempt).\n");
+        while (1) {
+            int c = kbd_read_char();
+            
+            if (c == '\r' || c == '\n') {
+                MyPutC('\r');
+                MyPutC('\n');
+            } else if (c == '\b' || c == 127) {
+                // Backspace - show it working
+                esp_printf(MyPutC, "[BS]");
+                MyPutC('\b');
+            } else if (c >= 32 && c < 127) {
+                // Printable characters
+                MyPutC(c);
+            } else if (c >= 1000) {
+                // Arrow keys and special keys
+                switch(c) {
+                    case 1000: esp_printf(MyPutC, "[LEFT]"); break;
+                    case 1001: esp_printf(MyPutC, "[RIGHT]"); break;
+                    case 1002: esp_printf(MyPutC, "[UP]"); break;
+                    case 1003: esp_printf(MyPutC, "[DOWN]"); break;
+                    case 1004: esp_printf(MyPutC, "[DEL]"); break;
+                    case 1005: esp_printf(MyPutC, "[HOME]"); break;
+                    case 1006: esp_printf(MyPutC, "[END]"); break;
+                    case 1007: esp_printf(MyPutC, "[PGUP]"); break;
+                    case 1008: esp_printf(MyPutC, "[PGDN]"); break;
+                    default: esp_printf(MyPutC, "[%d]", c); break;
+                }
+            } else if (c == 17) {
+                // Ctrl+Q
+                esp_printf(MyPutC, "[CTRL+Q]");
+            } else {
+                // Control characters and other non-printables
+                esp_printf(MyPutC, "[0x%x]", c);
+            }
+        }
+    }
     
     return 0;
     
