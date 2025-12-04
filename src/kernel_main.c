@@ -272,15 +272,22 @@ int main() {
     //kilo_run("file.txt"); // Open and display file in Kilo editor
     
     // DEBUG: simple echo test for keyboard.c
+    esp_printf(MyPutC, "Keyboard debug mode. Press keys to see their codes.\n");
     while (1) {
         int c = kbd_read_char();
         
         if (c == '\r' || c == '\n') {
+            MyPutC('\r');
             MyPutC('\n');
-        } else if (c >= 32 && c < 127) { // Backspace or Delete
+        } else if (c >= '\b' || c == 127) { // Backspace or Delete
+            esp_printf(MyPutC, "[BACKSPACE]");
+            MyPutC('\b');
+        } else if (c >= 32 && c < 127) { // Printable characters
             MyPutC(c);
-        } else { // Printable characters
-            esp_printf(MyPutC, "[%x]", c);
+        } else if (c >= 1000) { // Arrow/Special Keys
+            esp_printf(MyPutC, "[ARROW/SPECIAL:%d]", c);
+        } else { // Control/Unknown characters
+            esp_printf(MyPutC, "[0x%x]", c);
         }
     }
     

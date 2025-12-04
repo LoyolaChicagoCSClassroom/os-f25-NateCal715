@@ -48,12 +48,17 @@ int kbd_read_char(void) {
                         case 0x4B: return ARROW_LEFT;
                         case 0x4D: return ARROW_RIGHT;
                         case 0x50: return ARROW_DOWN;
+                        case 0x53: return DEL_KEY;
+                        case 0x47: return HOME_KEY;
+                        case 0x4F: return END_KEY;
+                        case 0x49: return PAGE_UP;
+                        case 0x51: return PAGE_DOWN;
                     }
                 }
                 continue;
             }
             
-            if (scancode > 128) {
+            if (scancode > 0x7F) {
                 continue; // Ignore key releases
             }
             
