@@ -61,6 +61,21 @@ static void clear_to_eol(void) {
     }
 }
 
+static void handle_backspace(void) {
+    // Move cursor back one position and clear that character
+    if (cur_col > 0) {
+        cur_col--;
+        // Clear character at new cursor position
+        vram[cur_row * VGA_WIDTH + cur_col].ASCII = ' ';
+        vram[cur_row * VGA_WIDTH + cur_col].COLOR = 7;
+    } else if (cur_row > 0) {
+        // Move to end of previous line
+        cur_row--;
+        cur_col = VGA_WIDTH - 1;
+    }
+    
+}
+
 static void put_char_at_cursor(char ch) {
     vram[cur_row * VGA_WIDTH + cur_col].ASCII = ch;
     vram[cur_row * VGA_WIDTH + cur_col].COLOR = inverse_video ? 0x70 : 0x07;
@@ -186,6 +201,8 @@ int ansi_putc(int ch) {
                     scroll_up();
                     cur_row = VGA_HEIGHT - 1;
                 }
+            } else if (c == '\b' || c == 0x7F) {
+                handle_backspace();
             } else {
                 put_char_at_cursor((char)c);
             }
