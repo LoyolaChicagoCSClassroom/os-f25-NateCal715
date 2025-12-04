@@ -604,6 +604,9 @@ void editorProcessKeypress() {
 
     int c = editorReadKey();
 
+    // DEBUGGING 
+    esp_printf(MyPutC, "[&d]", c);
+
     switch (c) {
         case '\r':
             editorInsertNewline();

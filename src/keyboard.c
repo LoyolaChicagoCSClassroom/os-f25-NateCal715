@@ -26,6 +26,7 @@ static const char keyboard_map[128] = {
 };
 
 static int waiting_for_extended = 0;
+static int ctrl_down = 0;
 
 int kbd_read_char(void) {
     for (;;) {
@@ -58,12 +59,25 @@ int kbd_read_char(void) {
                 continue;
             }
             
-            if (scancode > 0x7F) {
+            if (scancode & 0x80) {
+                uint8_t code = scancode & 0x7F;
+                if (code == 0x1D) {
+                    // LEFT Ctrl released
+                    ctrl_down = 0;
+                }
                 continue; // Ignore key releases
+            }
+
+            if (scancode == 0x1D) {
+                ctrl_down = -1;
+                continue;
             }
             
             char ch = keyboard_map[scancode];
             if (ch != 0) {
+                if (ctrl_down && ch >= 'a' && ch <= 'z') {
+                    return ch & 0x1F;
+                }
                 return ch;
             }
         }
