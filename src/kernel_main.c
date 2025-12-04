@@ -269,20 +269,20 @@ int main() {
     }
 
     ansi_init(); // Re-initialize ANSI terminal state
-    kilo_run("file.txt"); // Open and display file in Kilo editor
+    //kilo_run("file.txt"); // Open and display file in Kilo editor
     
-    // // DEBUG: simple echo test for keyboard.c
-    // while (1) {
-    //     int c = kbd_read_char();
+    // DEBUG: simple echo test for keyboard.c
+    while (1) {
+        int c = kbd_read_char();
         
-    //     if (c == '\r' || c == '\n') {
-    //         MyPutC('\n');
-    //     } else if (c >= 32 && c < 127) { // Backspace or Delete
-    //         MyPutC(c);
-    //     } else { // Printable characters
-    //         esp_printf(MyPutC, "[%x]", c);
-    //     }
-    // }
+        if (c == '\r' || c == '\n') {
+            MyPutC('\n');
+        } else if (c >= 32 && c < 127) { // Backspace or Delete
+            MyPutC(c);
+        } else { // Printable characters
+            esp_printf(MyPutC, "[%x]", c);
+        }
+    }
     
     return 0;
     
