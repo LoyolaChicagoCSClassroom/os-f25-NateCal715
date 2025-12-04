@@ -279,7 +279,7 @@ int main() {
         if (c == '\r' || c == '\n') {
             MyPutC('\r');
             MyPutC('\n');
-        } else if (c >= '\b' || c == 127) { // Backspace or Delete
+        } else if (c == '\b' || c == 127) { // Backspace or Delete
             esp_printf(MyPutC, "[BACKSPACE]");
             MyPutC('\b');
         } else if (c >= 32 && c < 127) { // Printable characters
