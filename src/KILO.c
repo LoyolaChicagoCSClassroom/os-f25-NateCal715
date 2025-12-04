@@ -64,7 +64,7 @@ struct editorConfig {
     char statusmsg[80];
     time_t statusmsg_time;
     struct editorSyntax *syntax;
-    int quit_requested;
+    int quit_requested;  // Flag to signal quit
 };
 
 struct editorConfig E;
@@ -328,16 +328,16 @@ void editorOpen(char *filename) {
     filebuf[n] = '\0'; // Null-terminate the buffer
 
     int linestart = 0;
-    for (int i = 0; i < n; i++) {
-        if (filebuf[i] == '\n' || filebuf[i] == '\0' || filebuf[i] == '\r') {
+    for (int i = 0; i <= n; i++) {
+        if (i == n || filebuf[i] == '\n' || filebuf[i] == '\r') {
             int linelen = i - linestart;
-            if (linelen > 0) {
+            if (linelen > 0 || i == n) {
                 editorInsertRow(E.numrows, &filebuf[linestart], linelen);
-            } else {
-                editorInsertRow(E.numrows, "", 0);
             }
-            while (filebuf[i] == '\r' || filebuf[i] == '\n') i++;
+            // Skip any combination of \r\n
+            while (i < n && (filebuf[i] == '\r' || filebuf[i] == '\n')) i++;
             linestart = i;
+            i--; // Back up one since loop will increment
         }
     }
 
@@ -418,7 +418,9 @@ void editorDrawRows(struct abuf *ab) {
             int len = E.row[filerow].rsize - E.coloff;
             if (len < 0) len = 0;
             if (len > E.screencols) len = E.screencols;
-            abAppend(ab, &E.row[filerow].render[E.coloff], len);
+            if (len > 0) {
+                abAppend(ab, &E.row[filerow].render[E.coloff], len);
+            }
         }
 
         abAppend(ab, "\x1b[K", 3);
@@ -489,6 +491,7 @@ void editorSetStatusMessage(const char *fmt, ...) {
     
     char tmpfmt[80];
     strncpy(tmpfmt, fmt, 79);
+    tmpfmt[79] = '\0';
     
     char *dst = buf;
     const char *p = tmpfmt;
@@ -607,7 +610,8 @@ void editorProcessKeypress() {
             break;
 
         case KILO_CTRL_KEY('q'):
-            return; // leave editorProcessKeypress to quit
+            E.quit_requested = 1;
+            return;
 
         case KILO_CTRL_KEY('s'):
             editorSave();
@@ -700,9 +704,13 @@ void kilo_run(const char *filename) {
         editorRefreshScreen();
         editorProcessKeypress();
     }
-
-    for (;;) {
-        editorRefreshScreen();
-        editorProcessKeypress();
-    }
+    
+    // Clear screen before exiting
+    MyPutC('\x1b');
+    MyPutC('[');
+    MyPutC('2');
+    MyPutC('J');
+    MyPutC('\x1b');
+    MyPutC('[');
+    MyPutC('H');
 }
