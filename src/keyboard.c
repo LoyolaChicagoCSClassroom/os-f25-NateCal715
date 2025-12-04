@@ -22,9 +22,7 @@ static const char keyboard_map[128] = {
    0,    // Alt key
   ' ',    // Space bar
    0,    // Caps lock
-   // Remaining keys are function keys, etc.
-   0, 0, 0, 0, 0, 0, 0, 0,
-   0, 0, 0, 0, 0, 0, 0,
+   
 };
 
 static int waiting_for_extended = 0;
