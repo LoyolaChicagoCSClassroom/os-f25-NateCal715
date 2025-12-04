@@ -1,4 +1,4 @@
-// ansi.c - minimal ANSI escape interpreter for VGA text mode
+// ansi.c - minimal ANSI escape interpreter for VGA text mode, KILO-compatible
 
 #include "ansi.h"
 
@@ -17,7 +17,7 @@ static struct termbuf *const vram = (struct termbuf*)VGA_ADDRESS;
 // Cursor & state
 static int cur_row = 0;
 static int cur_col = 0;
-static int inverse_video = 0;    // for \x1b[7m / \x1b[m
+static int inverse_video = 0;    // for ESC[7m / ESC[0m
 
 // --- low-level helpers ------------------------------------------------
 
@@ -62,18 +62,15 @@ static void clear_to_eol(void) {
 }
 
 static void handle_backspace(void) {
-    // Move cursor back one position and clear that character
+    // Move cursor back and erase that cell
     if (cur_col > 0) {
         cur_col--;
-        // Clear character at new cursor position
-        vram[cur_row * VGA_WIDTH + cur_col].ASCII = ' ';
-        vram[cur_row * VGA_WIDTH + cur_col].COLOR = 7;
     } else if (cur_row > 0) {
-        // Move to end of previous line
         cur_row--;
         cur_col = VGA_WIDTH - 1;
     }
-    
+    vram[cur_row * VGA_WIDTH + cur_col].ASCII = ' ';
+    vram[cur_row * VGA_WIDTH + cur_col].COLOR = 7;
 }
 
 static void put_char_at_cursor(char ch) {
@@ -122,13 +119,12 @@ static void finish_param(void) {
 static void handle_csi_final(char final_ch) {
     finish_param();
 
-    // If no explicit params, treat as [0 or [1 depending on command
     int p0 = (nparams >= 1) ? params[0] : 0;
     int p1 = (nparams >= 2) ? params[1] : 0;
 
     switch (final_ch) {
         case 'J':
-            // Erase in display. Kilo uses ESC[2J for clear screen.
+            // Erase in display. Kilo uses ESC[2J to clear screen.
             if (p0 == 2 || p0 == 0) {
                 clear_screen();
             }
@@ -149,7 +145,8 @@ static void handle_csi_final(char final_ch) {
         }
 
         case 'm':
-            // Select Graphic Rendition. We only handle 0 (reset) and 7 (inverse).
+            // Select Graphic Rendition.
+            // We only handle 0 (reset) and 7 (inverse video). Other codes are ignored.
             if (nparams == 0) {
                 inverse_video = 0;
             } else {
@@ -164,16 +161,15 @@ static void handle_csi_final(char final_ch) {
             break;
 
         default:
-            // Ignore unknown CSI sequences
+            // Ignore other CSI sequences
             break;
     }
 }
 
 // For CSI ? sequences, Kilo uses ESC[?25l/h to hide/show cursor.
-// We won't actually hide the cursor in hardware; we just ignore them.
+// We ignore those for now (no hardware cursor control here).
 static void handle_csi_qmark_final(char final_ch) {
     (void)final_ch;
-    // could parse params[0] == 25 for show/hide if you later implement it
 }
 
 // --- public API -------------------------------------------------------
@@ -194,8 +190,10 @@ int ansi_putc(int ch) {
                 // ESC
                 state = S_ESC;
             } else if (c == '\r') {
+                // Carriage return: move to start of line
                 cur_col = 0;
             } else if (c == '\n') {
+                // Newline: move down, keep column 0 (after CR)
                 cur_row++;
                 if (cur_row >= VGA_HEIGHT) {
                     scroll_up();
@@ -204,6 +202,7 @@ int ansi_putc(int ch) {
             } else if (c == '\b' || c == 0x7F) {
                 handle_backspace();
             } else {
+                // Printable or other bytes
                 put_char_at_cursor((char)c);
             }
             break;
@@ -213,7 +212,7 @@ int ansi_putc(int ch) {
                 state = S_CSI;
                 reset_params();
             } else {
-                // Unknown escape, go back to normal
+                // Unknown single-char escape; ignore
                 state = S_NORMAL;
             }
             break;
@@ -229,7 +228,7 @@ int ansi_putc(int ch) {
             } else if (c == ';') {
                 finish_param();
             } else {
-                // Final byte
+                // Final CSI byte
                 handle_csi_final((char)c);
                 state = S_NORMAL;
                 reset_params();
@@ -244,7 +243,7 @@ int ansi_putc(int ch) {
             } else if (c == ';') {
                 finish_param();
             } else {
-                // Final byte (likely 'h' or 'l')
+                // Final byte for ESC[? sequences (like ?25h/?25l)
                 handle_csi_qmark_final((char)c);
                 state = S_NORMAL;
                 reset_params();
