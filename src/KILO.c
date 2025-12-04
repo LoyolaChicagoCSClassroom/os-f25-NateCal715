@@ -64,6 +64,7 @@ struct editorConfig {
     char statusmsg[80];
     time_t statusmsg_time;
     struct editorSyntax *syntax;
+    int quit_requested;
 };
 
 struct editorConfig E;
@@ -678,6 +679,7 @@ void initEditor() {
     E.statusmsg[0] = '\0';
     E.statusmsg_time = 0;
     E.syntax = NULL;
+    E.quit_requested = 0;
 
     E.screenrows = 25 - 2;
     E.screencols = 80;
@@ -693,6 +695,11 @@ void kilo_run(const char *filename) {
     }
 
     editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit");
+
+    while (!E.quit_requested) {
+        editorRefreshScreen();
+        editorProcessKeypress();
+    }
 
     for (;;) {
         editorRefreshScreen();
