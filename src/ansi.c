@@ -124,14 +124,14 @@ static void handle_csi_final(char final_ch) {
 
     switch (final_ch) {
         case 'J':
-            // Erase in display. Kilo uses ESC[2J to clear screen.
+            // Erase in display. KILO uses ESC[2J for clear screen.
             if (p0 == 2 || p0 == 0) {
                 clear_screen();
             }
             break;
 
         case 'K':
-            // Erase in line: Kilo uses ESC[K (clear to end of line)
+            // Erase in line: ESC[K (clear to end of line)
             clear_to_eol();
             break;
 
@@ -145,8 +145,7 @@ static void handle_csi_final(char final_ch) {
         }
 
         case 'm':
-            // Select Graphic Rendition.
-            // We only handle 0 (reset) and 7 (inverse video). Other codes are ignored.
+            // Select Graphic Rendition. Handle 0 (reset) and 7 (inverse).
             if (nparams == 0) {
                 inverse_video = 0;
             } else {
@@ -166,7 +165,7 @@ static void handle_csi_final(char final_ch) {
     }
 }
 
-// For CSI ? sequences, Kilo uses ESC[?25l/h to hide/show cursor.
+// For CSI ? sequences, KILO uses ESC[?25l/h to hide/show cursor.
 // We ignore those for now (no hardware cursor control here).
 static void handle_csi_qmark_final(char final_ch) {
     (void)final_ch;
@@ -190,10 +189,10 @@ int ansi_putc(int ch) {
                 // ESC
                 state = S_ESC;
             } else if (c == '\r') {
-                // Carriage return: move to start of line
+                // Carriage return: start of line
                 cur_col = 0;
             } else if (c == '\n') {
-                // Newline: move down, keep column 0 (after CR)
+                // Newline: move down; assume CR was already sent
                 cur_row++;
                 if (cur_row >= VGA_HEIGHT) {
                     scroll_up();
@@ -243,7 +242,7 @@ int ansi_putc(int ch) {
             } else if (c == ';') {
                 finish_param();
             } else {
-                // Final byte for ESC[? sequences (like ?25h/?25l)
+                // Final byte for ESC[? sequences (?25h / ?25l)
                 handle_csi_qmark_final((char)c);
                 state = S_NORMAL;
                 reset_params();
