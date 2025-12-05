@@ -61,7 +61,7 @@ rootfs.img:
 	mcopy -i rootfs.img@@1M kernel ::/
 	mmd -i rootfs.img@@1M boot 
 	mcopy -i rootfs.img@@1M grub.cfg ::/boot
- 	mcopy -i disk.img@@1M file.txt ::/boot
+ 	mcopy -i disk.img@@1M file.txt ::/
 	@echo " -- BUILD COMPLETED SUCCESSFULLY --"
 
 
