@@ -38,10 +38,9 @@ void sector_read(unsigned int lba, void *buffer) {
 }
 
 void sector_write(unsigned int lba, void *buffer) {
-    // Note: You'll need to implement ata_lba_write in ide.c
-    // For now, this is a placeholder
-    (void)lba;
-    (void)buffer;
+    if (ata_lba_write(lba, (unsigned char *)buffer, 1) != 0) {
+        esp_printf(MyPutC, "Error writing sector %d\n", lba);
+    }
 }
 
 void fatInit() {
@@ -140,14 +139,18 @@ int fatRead(rde *rde_ptr, char * buf, int n) {
     struct boot_sector *bs = (struct boot_sector*)boot_sector;
     
     uint16_t cluster = rde_ptr->cluster;
-    int first_sector = data_region_start + (cluster - 2) * bs->num_sectors_per_cluster;
+    if (cluster == 0) {
+        return 0;
+    }
+
+    int first_sector = data_region_start + (cluster - 2) * bs -> num_sectors_per_cluster;
     
     char cluster_buf[CLUSTER_SIZE];
-    for (int i = 0; i < bs->num_sectors_per_cluster; i++) {
+    for (int i = 0; i < bs -> num_sectors_per_cluster; i++) {
         sector_read(first_sector + i, cluster_buf + (i * SECTOR_SIZE));
     }
     
-    int bytes_to_copy = (n < (int)rde_ptr->file_size) ? n : (int)rde_ptr->file_size;
+    int bytes_to_copy = (n < (int)rde_ptr -> file_size) ? n : (int)rde_ptr -> file_size;
     if (bytes_to_copy > CLUSTER_SIZE) bytes_to_copy = CLUSTER_SIZE;
     
     for (int i = 0; i < bytes_to_copy; i++) {
@@ -279,7 +282,7 @@ int fatWrite(char *filename, char *data, int size) {
     struct boot_sector *bs = (struct boot_sector*)boot_sector;
     
     // If file needs a new cluster or doesn't have one
-    if (entry->cluster == 0 || size > CLUSTER_SIZE) {
+    if (entry -> cluster == 0 || size > CLUSTER_SIZE) {
         uint16_t cluster = find_free_cluster();
         if (cluster == 0) {
             return -2; // No free clusters
@@ -289,14 +292,14 @@ int fatWrite(char *filename, char *data, int size) {
         uint16_t *fat = (uint16_t*)fat_table;
         fat[cluster] = 0xFFFF;
         
-        entry->cluster = cluster;
+        entry -> cluster = cluster;
     }
     
     // Update file size
-    entry->file_size = size;
+    entry -> file_size = size;
     
     // Write data to cluster
-    int first_sector = data_region_start + (entry->cluster - 2) * bs->num_sectors_per_cluster;
+    int first_sector = data_region_start + (entry -> cluster - 2) * bs -> num_sectors_per_cluster;
     
     char cluster_buf[CLUSTER_SIZE];
     // Clear buffer
@@ -308,10 +311,8 @@ int fatWrite(char *filename, char *data, int size) {
         cluster_buf[i] = data[i];
     }
     
-    // Write sectors
-    // NOTE: This requires implementing sector_write which needs ata_lba_write
-    // For now, we'll just show the structure
-    for (int i = 0; i < bs->num_sectors_per_cluster; i++) {
+    // Write Sectors
+    for (int i = 0; i < bs -> num_sectors_per_cluster; i++) {
         sector_write(first_sector + i, cluster_buf + (i * SECTOR_SIZE));
     }
     
@@ -334,18 +335,7 @@ int main() {
     
     fatInit();
 
-    rde *file = fatOpen("file.txt");
-    if (file) {
-        char dataBuf[100];
-        int n = fatRead(file, dataBuf, sizeof(dataBuf) - 1);
-        if (n > 0) {
-            dataBuf[n] = '\0';
-        } else {
-            esp_printf(MyPutC, "Error reading file.\n");
-        }
-    } else {
-        esp_printf(MyPutC, "File not found (will be created on save).\n");
-    }
+    esp_printf(MyPutC, "FAT filesystem initialized.\n");
     
     esp_printf(MyPutC, "Press 1 for KILO editor, 2 for keyboard debug: ");
     int choice = kbd_read_char();
