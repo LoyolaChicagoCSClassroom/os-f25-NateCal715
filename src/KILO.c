@@ -289,17 +289,19 @@ void editorOpen(char *filename) {
 
     filebuf[n] = '\0';
 
-    int linestart = 0;
-    for (int i = 0; i <= n; i++) {
-        if (i == n || filebuf[i] == '\n' || filebuf[i] == '\r') {
-            int linelen = i - linestart;
-            if (linelen > 0 || i == n) {
-                editorInsertRow(E.numrows, &filebuf[linestart], linelen);
-            }
-            while (i < n && (filebuf[i] == '\r' || filebuf[i] == '\n')) i++;
-            linestart = i;
-            i--;
+    int i = 0; 
+    while (i < n) {
+        int linestart = i;
+
+        while (i < n && filebuf[i] != '\n' && filebuf[i] != '\r') {
+            i++;
         }
+        
+        int linelen = i - linestart;
+        editorInsertRow(E.numrows, &filebuf[linestart], linelen);
+
+        if (i < n && filebuf[i] == '\r') i++;
+        if (i < n && filebuf[i] == '\n') i++;
     }
 
     free(filebuf);
